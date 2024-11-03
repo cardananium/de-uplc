@@ -1,0 +1,29 @@
+# Node.js dependencies
+node_modules/
+
+# Output directories
+out/
+dist/
+
+# Visual Studio Code files
+.vscode/
+
+#Idea
+.idea/
+
+# MacOS files
+.DS_Store
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VS Code extension package files
+*.vsix
+
+# TypeScript declaration files
+*.d.ts
+
+# Build files
+build/
