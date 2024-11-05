@@ -1,54 +1,62 @@
 
 ```mermaid
-C4Component
-title VS Code Extension Architecture
+graph TB
+    %% Styling
+    classDef container fill:#fff,stroke:#000,stroke-width:2px;
+    classDef component fill:#fff,stroke:#000,color:#000;
+    classDef default fill:#fff,stroke:#000,color:#000;
+    classDef subgraphStyle fill:#fff,stroke:#000,color:#000;
+    linkStyle default stroke:#000,stroke-width:1px;
 
-%% Extension UI Components
-Container_Boundary(UI, "Extension UI Components") {
-    Component(TabManager, "Tab Manager", "Manages multiple tabs within the UI")
-    Component(UPLCView, "UPLC View", "Displays the UPLC code and its formatted version")
-    Component(DebuggerPanel, "Debugger Panel", "Provides debugging controls and displays debugging information")
-}
+    subgraph UI["UI Layer"]
+        TM["Tab Manager<br/>Manages editor tabs"]
+        UV["UPLC View<br/>Code viewer & formatter"]
+        DP["Debugger Panel<br/>Debug controls & info"]
+    end
 
-%% VS Code API
-Container(VSCodeAPI, "VS Code API", "Interfaces to interact with the VS Code environment")
+    subgraph VS["VS Code"]
+        API["VS Code API"]
+    end
 
-%% Debugger Parts (JS)
-Container_Boundary(JSDebugger, "Debugger Parts (JS)") {
-    Component(DebuggerManager, "Debugger Manager", "Central controller coordinating between UI, data providers, and Rust backend")
-    Component(ConfigManager, "Config Manager", "Manages user and workspace configurations")
-    Component(TmpFilesManager, "Tmp Files Manager", "Handles temporary files during debugging sessions")
-    Component(ChainDataProvider, "Chain Data Provider", "Abstracts blockchain data fetching")    
-    Component(KoiosClientJS, "Koios Client", "Fetches blockchain data from Koios API")
-    Component(OfflineDataProvider, "Offline Data Provider", "Provides blockchain data from local files for offline debugging")
-}
+    subgraph JS["JS Layer"]
+        DM["Debugger Manager<br/>Debug orchestrator"]
+        CM["Config Manager<br/>Settings handler"]
+        TF["Temp Files<br/>Session file manager"]
+        CD["Chain Data<br/>Data access layer"]
+        KC["Koios Client<br/>Blockchain API"]
+        OD["Offline Data<br/>Local data source"]
+    end
 
-%% Debugger Parts (Rust)
-Container_Boundary(RustDebugger, "Debugger Parts (Rust)") {
-    Component(RustUPLCDebugger, "UPLC Debugger", "Manages UPLC code execution on the Rust side")
-    Component(AikenUPLC, "Aiken-uplc", "Rust library for interpreting and executing UPLC code")
-    Component(UPLCFormatter, "UPLC Formatter", "Formats UPLC terms for the UI in JSON like structure")
-}
+    subgraph Rust["Rust Layer"]
+        UD["UPLC Debugger<br/>Core engine"]
+        AU["Aiken-UPLC<br/>UPLC interpreter"]
+        FM["Formatter<br/>Code formatter"]
+    end
 
-%% Relationships
-Rel(TabManager, UPLCView, "Manages")
-Rel(TabManager, DebuggerPanel, "Manages")
+    %% Relationships
+    DM --> |Uses| TM
+    TM --> |Manages| UV
+    DP --> |Uses| DM
 
-Rel(TabManager, DebuggerManager, "Interacts with")
-Rel(DebuggerManager, VSCodeAPI, "Uses")
-Rel(DebuggerManager, ConfigManager, "Accesses")
-Rel(DebuggerManager, TmpFilesManager, "Uses")
-Rel(DebuggerManager, ChainDataProvider, "Fetches data via")
-Rel(DebuggerManager, RustUPLCDebugger, "Communicates with")
+    TM --> |Uses| API
+    UV --> |Uses| API 
+    DP --> |Uses| API
 
-Rel(ChainDataProvider, KoiosClientJS, "Gets online data from")
-Rel(ChainDataProvider, OfflineDataProvider, "Gets offline data from")
+    DM --> |Uses| API
+    DM --> |Accesses| CM
+    DM --> |Uses| TF
+    DM --> |Fetches data via| CD
+    DM --> |Communicates with| UD
+    DM --> |Gets formatted data from| FM
 
-Rel(RustUPLCDebugger, AikenUPLC, "Executes code with")
-Rel(UPLCFormatter, AikenUPLC, "Formats output from")
-Rel(DebuggerManager, UPLCFormatter, "Sends formatted data from")
+    CD --> |Gets online data from| KC
+    CD --> |Gets offline data from| OD
 
-Rel(TabManager, VSCodeAPI, "Uses")
-Rel(UPLCView, VSCodeAPI, "Uses")
-Rel(DebuggerPanel, VSCodeAPI, "Uses")
+    UD --> |Executes code with| AU
+    FM --> |Formats output from| AU
+
+   %% Apply styles
+    class UI,JS,Rust,VS container;
+    class TM,UV,DP,DM,CM,TF,CD,KC,OD,UD,AU,FM component;
+    class UI,VS,JS,Rust subgraphStyle;
 ```
