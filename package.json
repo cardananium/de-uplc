@@ -12,10 +12,143 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "plutus-types-json",
+        "aliases": [
+          "Plutus Types JSON",
+          "ptypes"
+        ],
+        "extensions": [
+          ".pludata"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "plutus-types-json",
+        "scopeName": "source.plutus-types-json",
+        "path": "./syntaxes/plutus-types.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
-        "command": "de-uplc.helloWorld",
-        "title": "Hello World"
+        "command": "termViewer.toggleBreakpoint",
+        "title": "Toggle Term Breakpoint",
+        "category": "Term Viewer"
+      },
+      {
+        "command": "deuplc.newSession",
+        "title": "New Session",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "uplcTree.showNodeInTab",
+        "title": "Show Node in Tab",
+        "icon": "$(arrow-circle-right)"
+      },
+      {
+        "command": "extension.startSession",
+        "title": "Start (Simulated) Session"
+      },
+      {
+        "command": "extension.endSession",
+        "title": "End (Simulated) Session"
+      },
+      {
+        "command": "breakpointsTreeDataProvider.removeBreakpoint",
+        "title": "Remove Breakpoint",
+        "category": "Breakpoints"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "deuplcSideBar",
+          "title": "UPLC Debugger",
+          "icon": "resources/sidebar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "deuplcSideBar": [
+        {
+          "type": "webview",
+          "id": "debuggerPanelView",
+          "name": "Main Controls",
+          "initialSize": "1000px"
+        },
+        {
+          "type": "tree",
+          "id": "machineContextTreeDataProvider",
+          "name": "Machine Context"
+        },
+        {
+          "type": "tree",
+          "id": "machineStateTreeDataProvider",
+          "name": "Machine State"
+        },
+        {
+          "type": "tree",
+          "id": "environmentsTreeDataProvider",
+          "name": "Environments"
+        },
+        {
+          "type": "tree",
+          "id": "logsTreeDataProvider",
+          "name": "Logs"
+        },
+        {
+          "type": "tree",
+          "id": "breakpointsTreeDataProvider",
+          "name": "Breakpoints"
+        }
+      ]
+    },
+    "menus": {
+      "editor/lineNumber/context": [
+        {
+          "command": "termViewer.toggleBreakpoint",
+          "when": "resourceScheme == term-viewer && editorLineNumber in termViewer.possibleBreakpointLines",
+          "group": "navigation@1",
+          "args": [
+            "${lineNumber}"
+          ]
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "uplcTree.showNodeInTab",
+          "group": "inline",
+          "when": "((view == machineContextTreeDataProvider || view == machineStateTreeDataProvider || view == environmentsTreeDataProvider) && viewItem == uplcNode) || (view == logsTreeDataProvider && viewItem == logEntry)"
+        },
+        {
+          "command": "breakpointsTreeDataProvider.removeBreakpoint",
+          "when": "view == breakpointsTreeDataProvider && (viewItem == activeBreakpoint || viewItem == inactiveBreakpoint)",
+          "group": "breakpoint"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "deuplc.newSession",
+          "when": "view == deuplcSideBar",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "resourceScheme == term-viewer",
+          "command": "termViewer.toggleBreakpoint",
+          "group": "navigation"
+        }
+      ]
+    },
+        "keybindings": [
+      {
+        "command": "termViewer.toggleBreakpoint",
+        "key": "F9",
+        "when": "resourceScheme == term-viewer"
       }
     ]
   },
@@ -31,6 +164,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/json-bigint": "^1.0.4",
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
     "@types/vscode": "^1.95.0",
@@ -45,5 +179,9 @@
     "typescript": "^5.6.3",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@vscode/codicons": "^0.0.36",
+    "json-bigint": "^1.0.0"
   }
 }
