@@ -1,0 +1,267 @@
+{
+    "name": "Plutus Types JSON",
+    "scopeName": "source.plutus-types-json",
+    "fileTypes": ["ptypes"],
+    "patterns": [
+      { "include": "#value" }
+    ],
+    "repository": {
+      "value": {
+        "patterns": [
+          { "include": "#string" },
+          { "include": "#constant" },
+          { "include": "#number" },
+          { "include": "#object" },
+          { "include": "#array" },
+          { "include": "#boolean" },
+          { "include": "#null" },
+          { "include": "#plutus-specific" },
+          { "include": "#property-name-unquoted" }
+        ]
+      },
+      "constant": {
+        "patterns": [
+          {
+            "match": "\"(type|term_type|tag|context_type|fun)\"\\s*:\\s*\"([^\"]+)\"",
+            "captures": {
+              "1": { "name": "support.type.property-name.json" },
+              "2": { "name": "entity.name.type.json" }
+            }
+          },
+          {
+            "match": "\\b(type|term_type|tag|context_type|fun)\\s*:\\s*\"([^\"]+)\"",
+            "captures": {
+              "1": { "name": "support.type.property-name.json" },
+              "2": { "name": "entity.name.type.json" }
+            }
+          }
+        ]
+      },
+      "string": {
+        "patterns": [
+          {
+            "name": "string.quoted.double.json",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+              { "include": "#string-content" }
+            ]
+          }
+        ]
+      },
+      "string-content": {
+        "patterns": [
+          {
+            "name": "constant.character.escape.json",
+            "match": "\\\\([\"\\\\bfnrt]|u[0-9a-fA-F]{4})"
+          }
+        ]
+      },
+      "number": {
+        "name": "constant.numeric.json",
+        "match": "-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?"
+      },
+      "object": {
+        "name": "meta.structure.dictionary.json",
+        "begin": "\\{",
+        "end": "\\}",
+        "patterns": [
+          { "include": "#comment" },
+          { "include": "#object-key-quoted" },
+          { "include": "#object-key-unquoted" },
+          {
+            "name": "meta.structure.dictionary.json",
+            "match": "[^\\s\\}]"
+          }
+        ]
+      },
+      "object-key-quoted": {
+        "name": "meta.structure.dictionary.value.json",
+        "begin": "\"([^\"\\\\]|\\\\.)*\"\\s*:\\s*",
+        "end": "(?=,|\\})",
+        "beginCaptures": {
+          "0": { "name": "support.type.property-name.json" }
+        },
+        "patterns": [
+          { "include": "#value" }
+        ]
+      },
+      "object-key-unquoted": {
+        "name": "meta.structure.dictionary.value.json",
+        "begin": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\s*:\\s*",
+        "end": "(?=,|\\})",
+        "beginCaptures": {
+          "0": { "name": "support.type.property-name.json" }
+        },
+        "patterns": [
+          { "include": "#value" }
+        ]
+      },
+      "array": {
+        "name": "meta.structure.array.json",
+        "begin": "\\[",
+        "end": "\\]",
+        "patterns": [
+          { "include": "#value" },
+          {
+            "name": "meta.structure.array.json",
+            "match": "[^\\s\\]]"
+          }
+        ]
+      },
+      "boolean": {
+        "name": "constant.language.json",
+        "match": "\\b(?:true|false)\\b"
+      },
+      "null": {
+        "name": "constant.language.json",
+        "match": "\\bnull\\b"
+      },
+      "plutus-specific": {
+        "patterns": [
+          {
+            "comment": "Plutus core types",
+            "match": "\"(Integer|ByteString|String|UsignedInteger|Bool|ProtoList|ProtoPair|Data|Bls12_381G1Element|Bls12_381G2Element|Bls12_381MlResult|Constr|Delay|Lambda|Builtin|Var|Apply|Force|Error|Case)\"",
+            "name": "entity.name.class.json"
+          },
+          {
+            "comment": "Script purpose types",
+            "match": "\"(Minting|Spending|Rewarding|Certifying|Voting|Proposing)\"",
+            "name": "entity.name.class.json"
+          },
+          {
+            "comment": "Certificate types", 
+            "match": "\"(StakeRegistration|StakeDeregistration|StakeDelegation|PoolRegistration|PoolRetirement|GenesisKeyDelegation|MoveInstantaneousRewardsCert|RegCert|UnregCert|VoteDeleg|StakeVoteDeleg|StakeRegDeleg|VoteRegDeleg|StakeVoteRegDeleg|AuthCommitteeHot|ResignCommitteeCol|RegDrepCert|UnregDrepCert|UpdateDrepCert)\"",
+            "name": "entity.name.class.json"
+          },
+          {
+            "comment": "Plutus term fields (quoted)",
+            "match": "\"(constructorTag|fields|function|argument|parameterName|body|term|term_name|env|value|values|fun|runtime|constant)\"\\s*:",
+            "name": "support.function.json"
+          },
+          {
+            "comment": "Plutus term fields (unquoted)",
+            "match": "\\b(constructorTag|fields|function|argument|parameterName|body|term|term_name|env|value|values|fun|runtime|constant)\\s*:",
+            "name": "support.function.json"
+          },
+          {
+            "comment": "Plutus data types",
+            "match": "\"(DefaultFunction|BuiltinRuntime|IntegerNumber|BytesInHex|PlutusData|BlstP1|BlstP2|BlstFp12|TxInInfo|TxInfo|ScriptContext|TimeRange|ScriptPurpose|ScriptInfo)\"",
+            "name": "entity.name.type.json"
+          },
+          {
+            "comment": "Redeemer tag types",
+            "match": "\"(Spend|Mint|Cert|Reward|Vote|Propose)\"",
+            "name": "constant.language.json"
+          },
+          {
+            "comment": "Voter types for governance",
+            "match": "\"(ConstitutionalCommittee|DRep|SPO)\"",
+            "name": "constant.language.json"
+          }
+        ]
+      },
+      "property-name-unquoted": {
+        "patterns": [
+          {
+            "comment": "TxInfo version identifiers",
+            "match": "\\b(V1|V2|V3)\\s*:",
+            "captures": {
+              "1": { "name": "entity.name.type.json" }
+            }
+          },
+          {
+            "comment": "TxInfo common fields (V1, V2, V3)",
+            "match": "\\b(inputs|outputs|fee|mint|certificates|withdrawals|valid_range|signatories|data|redeemers|id)\\s*:",
+            "captures": {
+              "1": { "name": "support.type.property-name.json" }
+            }
+          },
+          {
+            "comment": "TxInfo V2+ specific fields",
+            "match": "\\b(reference_inputs)\\s*:",
+            "captures": {
+              "1": { "name": "support.type.property-name.json" }
+            }
+          },
+          {
+            "comment": "TxInfo V3 specific fields",
+            "match": "\\b(votes|proposal_procedures|current_treasury_amount|treasury_donation)\\s*:",
+            "captures": {
+              "1": { "name": "support.type.property-name.json" }
+            }
+          },
+          {
+            "comment": "TxInInfo fields",
+            "match": "\\b(out_ref|resolved)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "TransactionInput fields",
+            "match": "\\b(tx_id|output_index)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "TransactionOutput fields",
+            "match": "\\b(address|value|datum_hash|datum_option|script_ref)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "Value fields",
+            "match": "\\b(coin|assets|tokens)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "TimeRange fields",
+            "match": "\\b(lower_bound|upper_bound)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "Redeemer fields",
+            "match": "\\b(tag|index|ex_units|mem|steps)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "Certificate fields",
+            "match": "\\b(stake_credential|pool_keyhash|reward_account)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "Script purpose types",
+            "match": "\\b(purpose|type)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "PlutusData fields",
+            "match": "\\b(constructor|fields|int|bytes|list|map)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          },
+          {
+            "comment": "Governance fields (V3)",
+            "match": "\\b(voter|gov_action_id|voting_procedure|proposal_procedure)\\s*:",
+            "captures": {
+              "1": { "name": "support.function.json" }
+            }
+          }
+        ]
+      }
+    }
+  }

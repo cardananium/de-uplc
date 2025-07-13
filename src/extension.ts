@@ -1,25 +1,44 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+
+import { UplcTreeDataProvider } from './sections/uplc-tree/uplc-tree-data-provider';
+import { LogsTreeDataProvider } from './sections/logs-tree-data-provider';
+import { BreakpointsTreeDataProvider } from './sections/breakpoints-tree-data-provider';
+import { DebuggerPanelViewProvider } from './sections/debugger-panel-view-provider';
+import { EventBridge } from './events/event-bridge';
+import { DebuggerManager } from './debugger/debugger-manager';
+import { TabManager } from './tabs/tab-manager';
 
 export function activate(context: vscode.ExtensionContext) {
-    // const wasmPath = path.join(context.extensionPath, 'wasm', 'module.wasm');
-    // const wasmBinary = fs.readFileSync(wasmPath);
+  console.log('!!!!!!Congratulations, your extension "de-uplc" is now active!!!!!!!!!!!!!!!!!');
 
-    // WebAssembly.instantiate(wasmBinary).then((result: WebAssembly.WebAssemblyInstantiatedSource) => {
-    //     console.log('WASM module loaded:', result.instance);
-    //     // Use the wasm module as needed
-    // }).catch((err: any) => {
-    //     console.error('Failed to load WASM module:', err);
-    // });
+  const debuggerManager = new DebuggerManager();
+  const tabManager = TabManager.register(context);
+  const debuggerPanelViewProvider = DebuggerPanelViewProvider.register(context);
+  const machineContextTreeDataProvider = UplcTreeDataProvider.register(context, "machineContextTreeDataProvider");
+  const machineStateTreeDataProvider = UplcTreeDataProvider.register(context, "machineStateTreeDataProvider");
+  const environmentsTreeDataProvider = UplcTreeDataProvider.register(context, "environmentsTreeDataProvider");
+  const logsTreeDataProvider = LogsTreeDataProvider.register(context, "logsTreeDataProvider");
+  const breakpointsTreeDataProvider = BreakpointsTreeDataProvider.register(context, "breakpointsTreeDataProvider");
 
-    // console.log('Congratulations, your extension "de-uplc" is now active!');
+  const bridge = new EventBridge(
+    context,
+     debuggerManager, 
+     tabManager, 
+     debuggerPanelViewProvider, 
+     machineContextTreeDataProvider, 
+     machineStateTreeDataProvider,
+     environmentsTreeDataProvider,
+     logsTreeDataProvider,
+     breakpointsTreeDataProvider
+  );
 
-    let disposable = vscode.commands.registerCommand('de-uplc.helloWorld', () => {
-        vscode.window.showInformationMessage('Hello from your extension!');
-    });
+  bridge.registerCommands();
 
-    context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('deuplc.newSession', () => {
+      vscode.window.showInformationMessage('View is refreshed!');
+    })
+  );
 }
 
-export function deactivate() {}
+export function deactivate() { }

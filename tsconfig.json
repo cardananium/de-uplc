@@ -10,5 +10,6 @@
         "rootDir": "src",
         "strict": true,
         "moduleResolution": "Node16"
-    }
+    },
+    "exclude": ["node_modules", ".vscode-test"]
 }
