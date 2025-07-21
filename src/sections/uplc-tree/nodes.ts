@@ -1,11 +1,5 @@
 import * as vscode from 'vscode';
-import { MachineState } from '../../uplc-models/machine-state';
-import { BuiltinRuntime } from '../../uplc-models/builtins';
-import { Constant } from '../../uplc-models/constant';
-import { TermWithId } from '../../uplc-models/term';
-import { Type } from '../../uplc-models/type';
-import { Env, Value } from '../../uplc-models/value';
-import { Context } from '../../uplc-models/context';
+import { MachineState, BuiltinRuntime, Constant, Term, Type, Env, Value, MachineContext } from '../../debugger-types';
 
 export interface UplcNode {
     getTreeItem(): vscode.TreeItem;
@@ -29,7 +23,7 @@ export class MachineStateNode implements UplcNode {
     constructor(public state: MachineState) {}
 
     getTreeItem(): vscode.TreeItem {
-        let label = `${this.state.tag}`;
+        let label = `${this.state.machine_state_type}`;
         const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.Expanded);
         item.iconPath = new vscode.ThemeIcon('gear');
         item.contextValue = 'uplcNode';
@@ -37,7 +31,7 @@ export class MachineStateNode implements UplcNode {
     }
 
     getChildren(): UplcNode[] {
-        switch (this.state.tag) {
+        switch (this.state.machine_state_type) {
             case "Return":
                 return [new ValueNode(this.state.value, 'Return value')];
             case "Compute":
@@ -49,14 +43,14 @@ export class MachineStateNode implements UplcNode {
 }
 
 export class ContextNode implements UplcNode {
-    constructor(private context: Context, private label: string = 'Context') {}
+    constructor(private context: MachineContext, private label: string = 'Context') {}
     getTreeItem(): vscode.TreeItem {
         // Create more informative labels based on context type
         let displayLabel;
         if (this.context.context_type === "FrameConstr") {
-            displayLabel = `${this.context.context_type}: tag=${this.context.constructorTag}`;
+            displayLabel = `${this.context.context_type}: tag=${this.context.tag}`;
         } else if (this.context.context_type === "FrameCases") {
-            displayLabel = `${this.context.context_type}: ${this.context.branches.length} branches`;
+            displayLabel = `${this.context.context_type}: ${this.context.terms.length} branches`;
         } else {
             displayLabel = `${this.context.context_type}`;
         }
@@ -79,14 +73,14 @@ export class ContextNode implements UplcNode {
             case "FrameConstr":
                 return [
                     new EnvNode(this.context.env),
-                    new SimpleNode(`Constructor tag: ${this.context.constructorTag}`),
-                    ...this.context.remainingTerms.map((t, i) => new TermNode(t, `Remaining term ${i}`)),
-                    ...this.context.evaluatedValues.map((v, i) => new ValueNode(v, `Evaluated value ${i}`))
+                    new SimpleNode(`Constructor tag: ${this.context.tag}`),
+                    ...this.context.terms.map((t, i) => new TermNode(t, `Remaining term ${i}`)),
+                    ...this.context.values.map((v, i) => new ValueNode(v, `Evaluated value ${i}`))
                 ];
             case "FrameCases":
                 return [
                     new EnvNode(this.context.env),
-                    ...this.context.branches.map((b, i) => new TermNode(b, `Branch ${i}`))
+                    ...this.context.terms.map((b, i) => new TermNode(b, `Branch ${i}`))
                 ];
             case "NoFrame":
                 return [];
@@ -97,14 +91,14 @@ export class ContextNode implements UplcNode {
 export class EnvNode implements UplcNode {
     constructor(private env: Env) {}
     getTreeItem(): vscode.TreeItem {
-        const item = new vscode.TreeItem(`Env (${this.env.length} values)`,
-            this.env.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+        const item = new vscode.TreeItem(`Env (${this.env.values.length} values)`,
+            this.env.values.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
         item.iconPath = new vscode.ThemeIcon('symbol-field');
         item.contextValue = 'uplcNode';
         return item;
     }
     getChildren(): UplcNode[] {
-        return this.env.map((v, i) => new ValueNode(v, `Env[${i}]`));
+        return this.env.values.map((v, i) => new ValueNode(v, `Env[${i}]`));
     }
 }
 
@@ -113,20 +107,20 @@ export class ValueNode implements UplcNode {
     getTreeItem(): vscode.TreeItem {
         // Create more informative labels based on value type
         let displayLabel = this.label;
-        if (this.value.tag === "Lambda") {
-            displayLabel = `${this.label} (${this.value.tag}: ${this.value.parameterName})`;
-        } else if (this.value.tag === "Constr") {
-            displayLabel = `${this.label} (${this.value.tag}: tag=${this.value.constructorTag})`;
-        } else if (this.value.tag === "Builtin") {
-            displayLabel = `${this.label} (${this.value.tag}: ${this.value.fun})`;
+        if (this.value.value_type === "Lambda") {
+            displayLabel = `${this.label} (${this.value.value_type}: ${this.value.parameterName})`;
+        } else if (this.value.value_type === "Constr") {
+            displayLabel = `${this.label} (${this.value.value_type}: tag=${this.value.tag})`;
+        } else if (this.value.value_type === "Builtin") {
+            displayLabel = `${this.label} (${this.value.value_type}: ${this.value.fun})`;
         } else {
-            displayLabel = `${this.label} (${this.value.tag})`;
+            displayLabel = `${this.label} (${this.value.value_type})`;
         }
         
         const item = new vscode.TreeItem(displayLabel, vscode.TreeItemCollapsibleState.Collapsed);
-        
+
         let iconName: string;
-        switch (this.value.tag) {
+        switch (this.value.value_type) {
             case "Con":
                 iconName = 'symbol-constant';
                 break;
@@ -150,11 +144,11 @@ export class ValueNode implements UplcNode {
         return item;
     }
     getChildren(): UplcNode[] {
-        switch (this.value.tag) {
+        switch (this.value.value_type) {
             case "Con":
                 return [new ConstantNode(this.value.constant)];
             case "Delay":
-                return [new TermNode(this.value.term, 'Delayed Term'), new EnvNode(this.value.env)];
+                return [new TermNode(this.value.body, 'Delayed Term'), new EnvNode(this.value.env)];
             case "Lambda":
                 return [
                     new SimpleNode(`Parameter: ${this.value.parameterName}`),
@@ -168,7 +162,7 @@ export class ValueNode implements UplcNode {
                 ];
             case "Constr":
                 return [
-                    new SimpleNode(`Constructor tag: ${this.value.constructorTag}`),
+                    new SimpleNode(`Constructor tag: ${this.value.tag}`),
                     ...this.value.fields.map((f, i) => new ValueNode(f, `Field ${i}`))
                 ];
         }
@@ -184,25 +178,26 @@ export class ConstantNode implements UplcNode {
             this.constant.type === "Integer" || 
             this.constant.type === "ByteString" || 
             this.constant.type === "String" || 
-            this.constant.type === "UsignedInteger" || 
+            this.constant.type === "Unit" || 
             this.constant.type === "Bool" ? 
                 vscode.TreeItemCollapsibleState.None : 
                 vscode.TreeItemCollapsibleState.Collapsed
         );
         
         item.iconPath = new vscode.ThemeIcon(
-            this.constant.type === "Integer" || this.constant.type === "UsignedInteger" ? 'symbol-number' :
+            this.constant.type === "Integer"? 'symbol-number' :
             this.constant.type === "ByteString" ? 'symbol-array' :
             this.constant.type === "String" ? 'symbol-string' :
             this.constant.type === "Bool" ? 'symbol-boolean' :
             this.constant.type === "ProtoList" ? 'list-tree' :
             this.constant.type === "ProtoPair" ? 'symbol-struct' :
             this.constant.type === "Data" ? 'symbol-object' :
+            this.constant.type === "Unit" ? 'symbol-misc' :
             'symbol-constant'
         );
         
         // Improved label display with actual values
-        if (this.constant.type === "Integer" || this.constant.type === "UsignedInteger") {
+        if (this.constant.type === "Integer") {
             item.label = `${this.label}: ${this.constant.value}`;
         } else if (this.constant.type === "String") {
             item.label = `${this.label}: "${this.constant.value}"`;
@@ -311,7 +306,7 @@ export class TypeNode implements UplcNode {
 }
 
 export class TermNode implements UplcNode {
-    constructor(private term: TermWithId, private label: string = 'Term') {}
+    constructor(private term: Term, private label: string = 'Term') {}
     getTreeItem(): vscode.TreeItem {
         // Create more informative labels based on term type
         let displayLabel = this.label;
@@ -421,9 +416,9 @@ export class BuiltinRuntimeNode implements UplcNode {
     getChildren(): UplcNode[] {
         const nodes: UplcNode[] = [];
         nodes.push(new SimpleNode(`Function: ${this.runtime.fun}`));
-        nodes.push(new SimpleNode(`Current Forces: ${this.runtime.current_forces}`));
+        nodes.push(new SimpleNode(`Current Forces: ${this.runtime.forces}`));
         nodes.push(new SimpleNode(`Arity: ${this.runtime.arity}`));
-        nodes.push(new SimpleNode(`Function Force Count: ${this.runtime.function_force_count}`));
+        nodes.push(new SimpleNode(`Function Force Count: ${this.runtime.forces}`));
         this.runtime.args.forEach((arg, i) => nodes.push(new ValueNode(arg, `Arg ${i}`)));
         return nodes;
     }

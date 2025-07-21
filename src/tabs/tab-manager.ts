@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TermViewerProvider } from './term-viewer';
 import { UplcDataViewer } from './uplc-viewer';
 import { PlainTextViewer } from './plain-text-viewer';
-import { TermWithId } from '../uplc-models/term';
+import { Term } from '../debugger-types';
 import { AnyUplcData } from '../uplc-models/any-uplc';
 import { Breakpoint } from '../common';
         
@@ -23,7 +23,7 @@ export class TabManager {
         return manager;
     }
     
-    public async openTermInNewTab(term: TermWithId) {
+    public async openTermInNewTab(term: Term) {
         return await this.termViewer.openTermInNewTab(term);
     }
 
@@ -35,11 +35,11 @@ export class TabManager {
         return await this.plainTextViewer.show(content, fileName);
     }
 
-    public focusOnTerm(term: TermWithId) {
+    public focusOnTerm(term: Term) {
         return this.termViewer.focusOnTerm(term.id);
     }
 
-    public highlightDebuggerLine(termId: string) {
+    public highlightDebuggerLine(termId: number) {
         return this.termViewer.highlightDebuggerLine(termId);
     }
 

@@ -1,15 +1,11 @@
-import { BuiltinRuntime } from "./builtins";
-import { Constant } from "./constant";
-import { Context } from "./context";
-import { TermWithId } from "./term";
-import { Value } from "./value";
+import { BuiltinRuntime, Constant, MachineContext, Term, Value } from "../debugger-types";
 
 export type AnyUplcData = 
     | BuiltinRuntime
     | Value
     | Value[]
-    | TermWithId
-    | TermWithId[]
+    | Term
+    | Term[]
     | Constant 
     | Constant[] 
-    | Context;
+    | MachineContext;

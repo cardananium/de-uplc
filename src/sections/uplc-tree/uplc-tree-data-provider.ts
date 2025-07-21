@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
-import { MachineState } from '../../uplc-models/machine-state';
-import { Context } from '../../uplc-models/context';
+import { MachineState, MachineContext, Env } from '../../debugger-types';
 import { ContextNode, EnvNode, MachineStateNode, UplcNode } from './nodes';
-import { Env } from '../../uplc-models/value';
 
 export class UplcTreeDataProvider implements vscode.TreeDataProvider<UplcNode> {
     private _onDidChangeTreeData: vscode.EventEmitter<UplcNode | undefined | void> = new vscode.EventEmitter();
     readonly onDidChangeTreeData: vscode.Event<UplcNode | undefined | void> = this._onDidChangeTreeData.event;
 
     private machineState: MachineState | undefined;
-    private contexts: Context[] = [];
+    private contexts: MachineContext[] = [];
     private currentEnv: Env | undefined;
 
     public static register(context: vscode.ExtensionContext, name: string): UplcTreeDataProvider {
@@ -32,7 +30,7 @@ export class UplcTreeDataProvider implements vscode.TreeDataProvider<UplcNode> {
         this._onDidChangeTreeData.fire();
     }
 
-    setContexts(contexts: Context[]) {
+    setContexts(contexts: MachineContext[]) {
         this.contexts = contexts;
         this._onDidChangeTreeData.fire();
     }

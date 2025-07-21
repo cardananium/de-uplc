@@ -1,541 +1,1626 @@
 import { Budget } from "../common";
-import { Context } from "../uplc-models/context";
-import { MachineState } from "../uplc-models/machine-state";
-import { TermWithId } from "../uplc-models/term";
-import { Value } from "../uplc-models/value";
+import { MachineContext, MachineState, Term, Env } from "../debugger-types";
 import { IDebuggerEngine } from "./debugger-engine.interface";
 
 export class MockDebuggerEngine implements IDebuggerEngine {
-    private sessions: Map<string, SessionData> = new Map();
-    private nextSessionId = 1;
+  private sessions: Map<string, SessionData> = new Map();
+  private nextSessionId = 1;
 
-    private generateSessionId(): string {
-        return `session_${this.nextSessionId++}`;
-    }
+  private generateSessionId(): string {
+    return `session_${this.nextSessionId++}`;
+  }
 
-    // Methods from DebuggerManager
-    public async openTransaction(script: string): Promise<void> {
-        // Mock implementation - no actual processing needed
-    }
+  // Methods from DebuggerManager
+  public async openTransaction(script: string): Promise<void> {
+    // Mock implementation - no actual processing needed
+  }
 
-    public async getRedeemers(): Promise<string[]> {
-        return [
-            "Spend:0",
-            "Spend:1",
-            "Certificate:0"
-        ];
-    }
+  public async getRedeemers(): Promise<string[]> {
+    return ["Spend:0", "Spend:1", "Certificate:0"];
+  }
 
-    public async getTransactionId(): Promise<string> {
-        return "0x1234567890abcdef";
-    }
+  public async getTransactionId(): Promise<string> {
+    return "0x1234567890abcdef";
+  }
 
-    public async initDebugSession(redeemer: string): Promise<string> {
-        const sessionId = this.generateSessionId();
-        this.sessions.set(sessionId, new SessionData(redeemer));
-        return sessionId;
-    }
+  public async initDebugSession(redeemer: string): Promise<string> {
+    const sessionId = this.generateSessionId();
+    this.sessions.set(sessionId, new SessionData(redeemer));
+    return sessionId;
+  }
 
-    public async terminateDebugging(sessionId: string): Promise<void> {
-        this.sessions.delete(sessionId);
-    }
+  public async terminateDebugging(sessionId: string): Promise<void> {
+    this.sessions.delete(sessionId);
+  }
 
-    // Methods from SessionController (with sessionId parameter)
-    public async getTxScriptContext(sessionId: string): Promise<any> {
-        this.validateSession(sessionId);
-        return {
-            "inputs": [
-              {
-                "out_ref": {
-                  "tx_id": "1ab2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6789",
-                  "output_index": 0
-                },
-                "resolved": {
-                  "address": "addr1qxy2k8hrkqeqmnapqx7jvg9rc0gkrmgatx4yjk9k9kxnvnq7m8a9fu9x7dzkq9amgqv12v5hz42zc7qlf3kz7df4m4mass8nafx",
-                  "value": {
-                    "coin": 1000000,
-                    "assets": {
-                      "b0d07d45fe9514f80213f4020e5a6124145bbe626841cde717cb38a7e75746865727756d": 50,
-                      "c0ffd7cb14cf0cba9c862d0aac0d96ceeeec28c9e5bf7e7f6a1d538d426974366f696e": 100
-                    }
-                  },
-                  "datum_hash": "ab12cd34ef56gh78ij90kl12mn34op56qr78st90uv12wx34yz56ab12cd34ef56"
-                }
-              }
-            ],
-            "outputs": [
-              {
-                "address": "addr1qxbphkx6acpnf7275k6vs3fkppzxk7zsxw2wuwqafy788txxm8a9fu9x7dzkq9amgvf2v5hz42zc7glf3kz7df4m4masfjx5p7",
-                "value": {
-                  "coin": 500000,
-                  "assets": {
-                    "b0d07d45fe9514f80213f4020e5a6124145bbe626841cde717cb38a7e75746865727756d": 25
-                  }
-                },
-                "datum_hash": "ff34de5678ab90cd12ef34gh56ij78kl90mn12op34qr56st78uv90wx12yz34ab56"
-              }
-            ],
-            "fee": {
-              "coin": 180000
+  // Methods from SessionController (with sessionId parameter)
+  public async getTxScriptContext(sessionId: string): Promise<any> {
+    this.validateSession(sessionId);
+    return {
+      inputs: [
+        {
+          out_ref: {
+            tx_id:
+              "1ab2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f6789",
+            output_index: 0,
+          },
+          resolved: {
+            address:
+              "addr1qxy2k8hrkqeqmnapqx7jvg9rc0gkrmgatx4yjk9k9kxnvnq7m8a9fu9x7dzkq9amgqv12v5hz42zc7qlf3kz7df4m4mass8nafx",
+            value: {
+              coin: 1000000,
+              assets: {
+                b0d07d45fe9514f80213f4020e5a6124145bbe626841cde717cb38a7e75746865727756d: 50,
+                c0ffd7cb14cf0cba9c862d0aac0d96ceeeec28c9e5bf7e7f6a1d538d426974366f696e: 100,
+              },
             },
-            "mint": {
-              "tokens": {
-                "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc12784d0f446e775d616b656e": 1000
-              }
+            datum_hash:
+              "ab12cd34ef56gh78ij90kl12mn34op56qr78st90uv12wx34yz56ab12cd34ef56",
+          },
+        },
+      ],
+      outputs: [
+        {
+          address:
+            "addr1qxbphkx6acpnf7275k6vs3fkppzxk7zsxw2wuwqafy788txxm8a9fu9x7dzkq9amgvf2v5hz42zc7glf3kz7df4m4masfjx5p7",
+          value: {
+            coin: 500000,
+            assets: {
+              b0d07d45fe9514f80213f4020e5a6124145bbe626841cde717cb38a7e75746865727756d: 25,
             },
-            "certificates": [
+          },
+          datum_hash:
+            "ff34de5678ab90cd12ef34gh56ij78kl90mn12op34qr56st78uv90wx12yz34ab56",
+        },
+      ],
+      fee: {
+        coin: 180000,
+      },
+      mint: {
+        tokens: {
+          d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc12784d0f446e775d616b656e: 1000,
+        },
+      },
+      certificates: [
+        {
+          type: "StakeRegistration",
+          stake_credential:
+            "e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
+        },
+      ],
+      withdrawals: [
+        {
+          address:
+            "addr1qxy2k8hrkqeqmnapqx7jvg9rc0gkrmgstx4yjk9k9kxnvnq7m8a9fu9x7dzkq9amgqv12v5hz42zc7qlf3kz7df4m4mass8nafx",
+          coin: 1000000,
+        },
+      ],
+      valid_range: {
+        lower_bound: 41000000,
+        upper_bound: 42000000,
+      },
+      signatories: [
+        "a1b2c34de5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      ],
+      data: [
+        // Simple integer PlutusData
+        { BigInt: { Int: 42n } },
+
+        // Constructor with fields
+        {
+          Constr: {
+            tag: 0,
+            fields: [
+              { BigInt: { Int: 123n } },
+              { BoundedBytes: "48656c6c6f20576f726c6421" },
               {
-                "type": "StakeRegistration",
-                "stake_credential": "e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2"
-              }
-            ],
-            "withdrawals": [
-              {
-                "address": "addr1qxy2k8hrkqeqmnapqx7jvg9rc0gkrmgstx4yjk9k9kxnvnq7m8a9fu9x7dzkq9amgqv12v5hz42zc7qlf3kz7df4m4mass8nafx",
-                "coin": 1000000
-              }
-            ],
-            "valid_range": {
-              "lower_bound": 41000000,
-              "upper_bound": 42000000
-            },
-            "signatories": [
-              "a1b2c34de5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
-              "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3"
-            ],
-            "data": [
-              "d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2",
-              {
-                "constructor": 0,
-                "fields": [
-                  { "int": 42 },
-                  { "bytes": "48656c6c6f20576f726c6421" }
-                ]
-              }
-            ],
-            "redeemers": [
-              {
-                "purpose": "Spend",
-                "index": 0,
-                "data": {
-                  "constructor": 0,
-                  "fields": [
-                    { "int": 1 }
-                  ]
-                },
-                "ex_units": {
-                  "mem": 1000000,
-                  "steps": 700000
-                }
-              }
-            ],
-            "id": "3abc4def5678901234567890abcdef1234567890abcdef12"
-        };
-    }
-
-    public async getRedeemer(sessionId: string): Promise<string> {
-        const session = this.validateSession(sessionId);
-        return session.redeemer;
-    }
-
-    public async getPlutusCoreVersion(sessionId: string): Promise<string> {
-        this.validateSession(sessionId);
-        return "1.0.3";
-    }
-
-    public async getPlutusLanguageVersion(sessionId: string): Promise<string | undefined> {
-        this.validateSession(sessionId);
-        return "v3";
-    }
-
-    public async getScriptHash(sessionId: string): Promise<string> {
-        this.validateSession(sessionId);
-        return "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    }
-
-    public async getMachineContext(sessionId: string): Promise<Context[]> {
-        this.validateSession(sessionId);
-        return [
-            // Example of FrameAwaitArg - waiting for an argument to be evaluated
-            {
-                context_type: "FrameAwaitArg",
-                value: {
-                    tag: "Con",
-                    constant: { type: "Integer", value: 42n }
-                }
-            },
-            
-            // Example of FrameAwaitFunTerm - waiting for a function term to be evaluated
-            {
-                context_type: "FrameAwaitFunTerm",
-                env: [
-                    {
-                        tag: "Con",
-                        constant: { type: "String", value: "example" }
-                    }
+                Array: [
+                  { BigInt: { Int: 1n } },
+                  { BigInt: { Int: 2n } },
+                  { BigInt: { Int: 3n } },
                 ],
-                term: {
-                    term_type: "Var",
-                    term_name: "x",
-                    name: "x",
-                    id: "1"
-                }
+              },
+            ],
+          },
+        },
+
+        // Map example
+        {
+          Map: [
+            [
+              { BoundedBytes: "6b6579" }, // "key" in hex
+              { BigInt: { Int: 100n } },
+            ],
+            [
+              { BigInt: { Int: 42n } },
+              { BoundedBytes: "76616c7565" }, // "value" in hex
+            ],
+          ],
+        },
+
+        // Large positive integer
+        { BigInt: { BigUInt: "1234567890abcdef" } },
+
+        // Large negative integer
+        { BigInt: { BigNInt: "fedcba0987654321" } },
+
+        // Nested constructor
+        {
+          Constr: {
+            tag: 1,
+            fields: [
+              {
+                Constr: {
+                  tag: 0,
+                  fields: [{ BoundedBytes: "deadbeef" }],
+                },
+              },
+              { Array: [] },
+            ],
+          },
+        },
+
+        // Constructor with any_constructor field
+        {
+          Constr: {
+            tag: 102,
+            any_constructor: 999,
+            fields: [{ BoundedBytes: "cafebabe" }],
+          },
+        },
+      ],
+      redeemers: [
+        {
+          purpose: "Spend",
+          index: 0,
+          data: {
+            Constr: {
+              tag: 0,
+              fields: [
+                { BigInt: { Int: 1n } },
+                { BoundedBytes: "deadbeef" },
+                {
+                  Map: [
+                    [
+                      { BoundedBytes: "72656465656d6572" }, // "redeemer"
+                      { BigInt: { Int: 42n } },
+                    ],
+                  ],
+                },
+              ],
             },
-            
-            // Example of FrameAwaitFunValue - waiting for a function value to be evaluated
+          },
+          ex_units: {
+            mem: 1000000,
+            steps: 700000,
+          },
+        },
+      ],
+      id: "3abc4def5678901234567890abcdef1234567890abcdef12",
+    };
+  }
+
+  public async getRedeemer(sessionId: string): Promise<string> {
+    const session = this.validateSession(sessionId);
+    return session.redeemer;
+  }
+
+  public async getPlutusCoreVersion(sessionId: string): Promise<string> {
+    this.validateSession(sessionId);
+    return "1.0.3";
+  }
+
+  public async getPlutusLanguageVersion(
+    sessionId: string
+  ): Promise<string | undefined> {
+    this.validateSession(sessionId);
+    return "v3";
+  }
+
+  public async getScriptHash(sessionId: string): Promise<string> {
+    this.validateSession(sessionId);
+    return "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+  }
+
+  public async getMachineContext(sessionId: string): Promise<MachineContext[]> {
+    this.validateSession(sessionId);
+    return [
+      // Example of FrameAwaitArg - waiting for an argument to be evaluated
+      {
+        context_type: "FrameAwaitArg",
+        value: {
+          value_type: "Con",
+          constant: {
+            type: "Data",
+            data: {
+              type: "Constr",
+              tag: 1,
+              fields: [
+                { Int: "999" },
+                { type: "BoundedBytes", value: "deadbeef" },
+              ],
+              any_constructor: null,
+            },
+          },
+        },
+      },
+
+      // Example of FrameAwaitFunTerm - waiting for a function term to be evaluated
+      {
+        context_type: "FrameAwaitFunTerm",
+        env: {
+          values: [
             {
-                context_type: "FrameAwaitFunValue",
-                value: {
-                    tag: "Lambda",
-                    parameterName: "param",
-                    body: {
-                        term_type: "Var",
-                        term_name: "param",
-                        name: "param",
-                        id: "2"
+              value_type: "Con",
+              constant: {
+                type: "Data",
+                data: {
+                  type: "Map",
+                  key_value_pairs: [
+                    {
+                      key: { type: "BoundedBytes", value: "6b6579" },
+                      value: { Int: "123" },
                     },
-                    env: []
-                }
-            },
-            
-            // Example of FrameForce - forcing a delayed computation
-            {
-                context_type: "FrameForce"
-            },
-            
-            // Example of FrameConstr - constructor frame with remaining terms and evaluated values
-            {
-                context_type: "FrameConstr",
-                env: [],
-                constructorTag: 1,
-                remainingTerms: [
                     {
-                        term_type: "Constant",
-                        term_name: "const1",
-                        constant: { type: "Bool", value: true },
-                        id: "3"
-                    }
-                ],
-                evaluatedValues: [
-                    {
-                        tag: "Con",
-                        constant: { type: "Integer", value: 123n }
-                    }
-                ]
-            },
-            
-            // Example of FrameCases - case analysis frame with branches
-            {
-                context_type: "FrameCases",
-                env: [
-                    {
-                        tag: "Constr",
-                        constructorTag: 0n,
-                        fields: []
-                    }
-                ],
-                branches: [
-                    {
-                        term_type: "Constant",
-                        term_name: "branch1",
-                        constant: { type: "String", value: "first branch" },
-                        id: "4"
+                      key: { Int: "42" },
+                      value: {
+                        type: "Array",
+                        values: [{ Int: "1" }, { Int: "2" }, { Int: "3" }],
+                      },
                     },
-                    {
-                        term_type: "Constant",
-                        term_name: "branch2", 
-                        constant: { type: "String", value: "second branch" },
-                        id: "5"
-                    }
-                ]
-            }
-        ];
-    }
+                  ],
+                },
+              },
+            },
+          ],
+        },
+        term: {
+          term_type: "Var",
+          name: "x",
+          id: 0,
+        },
+      },
 
-    public async getLogs(sessionId: string): Promise<string[]> {
-        this.validateSession(sessionId);
-        return [
-            "Log example 1",
-            "Log example 2",
-            "Log example 3",
-            "Very loooooong log. 1234567890123456789012345678901234567890123456789012345678901234567890123456789ABCABC"
-        ];
-    }
+      // Example of FrameAwaitFunValue - waiting for a function value to be evaluated
+      {
+        context_type: "FrameAwaitFunValue",
+        value: {
+          value_type: "Lambda",
+          parameterName: "param",
+          body: {
+            term_type: "Var",
+            name: "param",
+            id: 1,
+          },
+          env: {
+            values: [],
+          },
+          term_id: 200,
+        },
+      },
 
-    public async getMachineState(sessionId: string): Promise<MachineState> {
-        this.validateSession(sessionId);
-        return { 
-            tag: "Return",
-            value: { 
-                tag: "Constr",
-                constructorTag: 0n,
-                fields: []
-            }
-        };
-    }
+      // Example of FrameForce - forcing a delayed computation
+      {
+        context_type: "FrameForce",
+      },
 
-    public async getBudget(sessionId: string): Promise<Budget> {
-        const session = this.validateSession(sessionId);
-        return session.budget;
-    }
+      // Example of FrameConstr - constructor frame with remaining terms and evaluated values
+      {
+        context_type: "FrameConstr",
+        env: {
+          values: [],
+        },
+        tag: 1,
+        term_id: 300,
+        terms: [
+          {
+            term_type: "Constant",
+            constant: { type: "Bool", value: true },
+            id: 2,
+          },
+        ],
+        values: [
+          {
+            value_type: "Con",
+            constant: { type: "Integer", value: "123" },
+          },
+        ],
+      },
 
-    public async getScript(sessionId: string): Promise<TermWithId> {
-        this.validateSession(sessionId);
-        return {
+      // Example of FrameCases - case analysis frame with branches
+      {
+        context_type: "FrameCases",
+        env: {
+          values: [
+            {
+              value_type: "Constr",
+              tag: 0,
+              fields: [],
+              term_id: 302,
+            },
+          ],
+        },
+        terms: [
+          {
+            term_type: "Constant",
+            constant: { type: "String", value: "first branch" },
+            id: 3,
+          },
+          {
+            term_type: "Constant",
+            constant: { type: "String", value: "second branch" },
+            id: 4,
+          },
+        ],
+      },
+    ];
+  }
+
+  public async getLogs(sessionId: string): Promise<string[]> {
+    this.validateSession(sessionId);
+    return [
+      "Log example 1",
+      "Log example 2",
+      "Log example 3",
+      "Very loooooong log. 1234567890123456789012345678901234567890123456789012345678901234567890123456789ABCABC",
+    ];
+  }
+
+  public async getMachineState(sessionId: string): Promise<MachineState> {
+    this.validateSession(sessionId);
+    return {
+      machine_state_type: "Return",
+      value: {
+        value_type: "Constr",
+        tag: 0,
+        fields: [],
+        term_id: 100,
+      },
+      context: {
+        context_type: "NoFrame",
+      },
+    };
+  }
+
+  public async getBudget(sessionId: string): Promise<Budget> {
+    const session = this.validateSession(sessionId);
+    return session.budget;
+  }
+
+  public async getScript(sessionId: string): Promise<Term> {
+    this.validateSession(sessionId);
+    return {
+      term_type: "Lambda",
+      parameterName: "datum",
+      id: 5,
+      body: {
+        term_type: "Case",
+        id: 6,
+        constr: {
+          term_type: "Constant",
+          constant: {
+            type: "Integer",
+            value: "1000",
+          },
+          id: 7,
+        },
+        branches: [
+          {
             term_type: "Lambda",
-            term_name: "validator_script",
-            parameterName: "datum",
+            parameterName: "redeemer",
+            id: 8,
             body: {
-                term_type: "Lambda",
-                term_name: "redeemer_lambda",
-                parameterName: "redeemer",
-                body: {
-                    term_type: "Lambda",
-                    term_name: "context_lambda",
-                    parameterName: "context",
-                    body: {
-                        term_type: "Apply",
-                        term_name: "validate_transaction",
-                        function: {
-                            term_type: "Apply",
-                            term_name: "check_signature",
-                            function: {
-                                term_type: "Builtin",
-                                term_name: "equals_builtin",
-                                fun: "EqualsInteger",
-                                id: "script_equals"
-                            },
-                            argument: {
-                                term_type: "Apply",
-                                term_name: "extract_amount",
-                                function: {
-                                    term_type: "Builtin",
-                                    term_name: "uncons_data",
-                                    fun: "UnConstrData",
-                                    id: "script_uncons"
-                                },
-                                argument: {
-                                    term_type: "Var",
-                                    term_name: "datum",
-                                    name: "datum",
-                                    id: "script_datum_var"
-                                },
-                                id: "script_extract"
-                            },
-                            id: "script_check_sig"
-                        },
-                        argument: {
-                            term_type: "Constant",
-                            term_name: "expected_amount",
-                            constant: { type: "Integer", value: 1000000n },
-                            id: "script_expected"
-                        },
-                        id: "script_validate"
-                    },
-                    id: "script_context_body"
-                },
-                id: "script_redeemer_body"
-            },
-            id: "script_root"
-        };
-    }
-
-    public async getCurrentTermId(sessionId: string): Promise<string> {
-        this.validateSession(sessionId);
-        return "0";
-    }
-
-    public async getCurrentEnv(sessionId: string): Promise<Value[]> {
-        this.validateSession(sessionId);
-        return [
-            {
-                tag: "Con",
-                constant: { type: "Integer", value: 42n }
-            },
-            {
-                tag: "Con",
-                constant: { type: "String", value: "hello_world" }
-            },
-            {
-                tag: "Con",
-                constant: { type: "Bool", value: true }
-            },
-            {
-                tag: "Con",
-                constant: { type: "ByteString", value: "48656c6c6f" }
-            },
-            {
-                tag: "Con",
-                constant: { 
-                    type: "ProtoList", 
-                    elementType: { type: "Integer" }, 
-                    values: [
-                        { type: "Integer", value: 1n },
-                        { type: "Integer", value: 2n },
-                        { type: "Integer", value: 3n }
-                    ]
-                }
-            },
-            
-            {
-                tag: "Lambda",
-                parameterName: "x",
-                body: {
+              term_type: "Lambda",
+              parameterName: "context",
+              id: 9,
+              body: {
+                term_type: "Apply",
+                id: 10,
+                function: {
+                  term_type: "Apply",
+                  id: 11,
+                  function: {
+                    term_type: "Builtin",
+                    fun: "EqualsInteger",
+                    id: 12,
+                  },
+                  argument: {
                     term_type: "Apply",
-                    term_name: "add_x",
+                    id: 13,
                     function: {
-                        term_type: "Builtin",
-                        term_name: "add_builtin",
-                        fun: "AddInteger",
-                        id: "env_lambda_add"
+                      term_type: "Builtin",
+                      fun: "UnConstrData",
+                      id: 14,
                     },
                     argument: {
-                        term_type: "Var",
-                        term_name: "x",
-                        name: "x",
-                        id: "env_lambda_var"
+                      term_type: "Var",
+                      name: "datum",
+                      id: 15,
                     },
-                    id: "env_lambda_body"
+                  },
                 },
-                env: []
-            },
-            
-            {
-                tag: "Delay",
-                term: {
-                    term_type: "Constant",
-                    term_name: "delayed_const",
-                    constant: { type: "Integer", value: 100n },
-                    id: "env_delay_term"
-                },
-                env: []
-            },
-            
-            {
-                tag: "Builtin",
-                fun: "AddInteger",
-                runtime: {
-                    args: [
-                        {
-                            tag: "Con",
-                            constant: { type: "Integer", value: 10n }
-                        }
-                    ],
-                    fun: "AddInteger",
-                    current_forces: 0n,
-                    arity: 2n,
-                    function_force_count: 0n
-                }
-            },
-            {
-                tag: "Constr",
-                constructorTag: 1n,
-                fields: [
-                    {
-                        tag: "Con",
-                        constant: { type: "String", value: "field1" }
+                argument: {
+                  term_type: "Apply",
+                  id: 16,
+                  function: {
+                    term_type: "Builtin",
+                    fun: "ConstrData",
+                    id: 17,
+                  },
+                  argument: {
+                    term_type: "Apply",
+                    id: 18,
+                    function: {
+                      term_type: "Constant",
+                      constant: { type: "Integer", value: "1000" },
+                      id: 19,
                     },
-                    {
-                        tag: "Con",
-                        constant: { type: "Integer", value: 999n }
-                    }
-                ]
-            },
-            {
-                tag: "Constr",
-                constructorTag: 0n,
-                fields: []
-            },
-            {
-                tag: "Constr",
-                constructorTag: 2n,
-                fields: [
-                    {
-                        tag: "Constr",
-                        constructorTag: 0n,
-                        fields: [
-                            {
-                                tag: "Con",
-                                constant: { type: "Bool", value: false }
-                            }
-                        ]
-                    },
-                    {
-                        tag: "Lambda",
-                        parameterName: "y",
-                        body: {
-                            term_type: "Var",
-                            term_name: "y",
-                            name: "y",
-                            id: "env_nested_lambda"
+                    argument: {
+                      term_type: "Apply",
+                      id: 20,
+                      function: {
+                        term_type: "Constant",
+                        constant: { type: "String", value: "validator_v2" },
+                        id: 21,
+                      },
+                      argument: {
+                        term_type: "Apply",
+                        id: 22,
+                        function: {
+                          term_type: "Constant",
+                          constant: { type: "Bool", value: true },
+                          id: 23,
                         },
-                        env: [
-                            {
-                                tag: "Con",
-                                constant: { type: "Integer", value: 123n }
-                            }
-                        ]
-                    }
-                ]
-            }
-        ];
-    }
+                        argument: {
+                          term_type: "Apply",
+                          id: 24,
+                          function: {
+                            term_type: "Constant",
+                            constant: {
+                              type: "ByteString",
+                              value: "deadbeefcafebabe",
+                            },
+                            id: 25,
+                          },
+                          argument: {
+                            term_type: "Apply",
+                            id: 26,
+                            function: {
+                              term_type: "Constant",
+                              constant: {
+                                type: "Data",
+                                data: {
+                                  type: "Array",
+                                  values: [
+                                    { Int: "100" },
+                                    { Int: "200" },
+                                    { Int: "300" },
+                                    {
+                                      type: "BoundedBytes",
+                                      value: "48656c6c6f576f726c64",
+                                    },
+                                    {
+                                      type: "Constr",
+                                      tag: 2,
+                                      fields: [
+                                        { Int: "777" },
+                                        {
+                                          type: "BoundedBytes",
+                                          value: "abcdef123456",
+                                        },
+                                      ],
+                                      any_constructor: null,
+                                    },
+                                  ],
+                                },
+                              },
+                              id: 27,
+                            },
+                            argument: {
+                              term_type: "Apply",
+                              id: 28,
+                              function: {
+                                term_type: "Constant",
+                                constant: {
+                                  type: "Data",
+                                  data: {
+                                    type: "Map",
+                                    key_value_pairs: [
+                                      {
+                                        key: {
+                                          type: "BoundedBytes",
+                                          value: "6b657930",
+                                        },
+                                        value: { Int: "500" },
+                                      },
+                                      {
+                                        key: {
+                                          type: "BoundedBytes",
+                                          value: "6b657931",
+                                        },
+                                        value: { Int: "600" },
+                                      },
+                                      {
+                                        key: { Int: "99" },
+                                        value: {
+                                          type: "BoundedBytes",
+                                          value: "737472696e675f76616c7565",
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                                id: 29,
+                              },
+                              argument: {
+                                term_type: "Apply",
+                                id: 30,
+                                function: {
+                                  term_type: "Constant",
+                                  constant: {
+                                    type: "Data",
+                                    data: {
+                                      BigUInt:
+                                        "123456789abcdef0123456789abcdef",
+                                    },
+                                  },
+                                  id: 31,
+                                },
+                                argument: {
+                                  term_type: "Apply",
+                                  id: 32,
+                                  function: {
+                                    term_type: "Constant",
 
-    public async start(sessionId: string): Promise<void> {
-        this.validateSession(sessionId);
-        for (let i = 0; i < 1000000000; i++) {}
-    }
+                                    constant: {
+                                      type: "Data",
+                                      data: {
+                                        BigNInt:
+                                          "fedcba9876543210fedcba9876543210",
+                                      },
+                                    },
+                                    id: 33,
+                                  },
+                                  argument: {
+                                    term_type: "Apply",
+                                    id: 34,
+                                    function: {
+                                      term_type: "Constant",
 
-    public async continue(sessionId: string): Promise<void> {
-        this.validateSession(sessionId);
-        for (let i = 0; i < 1000000000; i++) {}
-    }
+                                      constant: {
+                                        type: "Data",
+                                        data: {
+                                          type: "Constr",
+                                          tag: 5,
+                                          fields: [
+                                            {
+                                              type: "Constr",
+                                              tag: 0,
+                                              fields: [
+                                                { Int: "888" },
+                                                {
+                                                  type: "BoundedBytes",
+                                                  value: "4e657374656444617461",
+                                                },
+                                              ],
+                                              any_constructor: null,
+                                            },
+                                            {
+                                              type: "Array",
+                                              values: [
+                                                { Int: "11" },
+                                                { Int: "22" },
+                                                { Int: "33" },
+                                              ],
+                                            },
+                                            {
+                                              type: "Map",
+                                              key_value_pairs: [
+                                                {
+                                                  key: {
+                                                    type: "BoundedBytes",
+                                                    value:
+                                                      "6e65737465645f6b6579",
+                                                  },
+                                                  value: { Int: "12345" },
+                                                },
+                                              ],
+                                            },
+                                          ],
+                                          any_constructor: null,
+                                        },
+                                      },
+                                      id: 35,
+                                    },
+                                    argument: {
+                                      term_type: "Apply",
+                                      id: 36,
+                                      function: {
+                                        term_type: "Constant",
 
-    public async step(sessionId: string): Promise<void> {
-        const session = this.validateSession(sessionId);
-        for (let i = 0; i < 1000000000; i++) {}
-        session.budget.exUnitsSpent += 10;
-        session.budget.memoryUnitsSpent += 15;
-    }
+                                        constant: {
+                                          type: "Data",
+                                          data: {
+                                            type: "Constr",
+                                            tag: 150,
+                                            fields: [
+                                              {
+                                                type: "BoundedBytes",
+                                                value:
+                                                  "416e79436f6e737472756374",
+                                              },
+                                              { Int: "9999" },
+                                            ],
+                                            any_constructor: 150,
+                                          },
+                                        },
+                                        id: 37,
+                                      },
+                                      argument: {
+                                        term_type: "Apply",
+                                        id: 38,
+                                        function: {
+                                          term_type: "Constant",
 
-    public async stop(sessionId: string): Promise<void> {
-        const session = this.validateSession(sessionId);
-        for (let i = 0; i < 1000000000; i++) {}
-        session.budget.exUnitsSpent += 10;
-        session.budget.memoryUnitsSpent += 15;
-    }
+                                          constant: {
+                                            type: "Integer",
+                                            value: "42",
+                                          },
+                                          id: 39,
+                                        },
+                                        argument: {
+                                          term_type: "Apply",
+                                          id: 40,
+                                          function: {
+                                            term_type: "Constant",
 
-    public async pause(sessionId: string): Promise<void> {
-        this.validateSession(sessionId);
-        for (let i = 0; i < 1000000000; i++) {}
-    }
+                                            constant: {
+                                              type: "ProtoList",
+                                              elementType: { type: "Integer" },
+                                              values: [
+                                                { type: "Integer", value: "1" },
+                                                { type: "Integer", value: "2" },
+                                                { type: "Integer", value: "3" },
+                                                {
+                                                  type: "Integer",
+                                                  value: "999",
+                                                },
+                                                {
+                                                  type: "Integer",
+                                                  value: "1000",
+                                                },
+                                              ],
+                                            },
+                                            id: 41,
+                                          },
+                                          argument: {
+                                            term_type: "Apply",
+                                            id: 42,
+                                            function: {
+                                              term_type: "Constant",
 
-    public async setBreakpointsList(sessionId: string, breakpoints: string[]): Promise<void> {
-        this.validateSession(sessionId);
-        // Mock implementation - store breakpoints if needed
-    }
+                                              constant: {
+                                                type: "ProtoPair",
+                                                first_type: { type: "String" },
+                                                second_type: {
+                                                  type: "Integer",
+                                                },
+                                                first_element: {
+                                                  type: "String",
+                                                  value: "pair_key",
+                                                },
+                                                second_element: {
+                                                  type: "Integer",
+                                                  value: "12345",
+                                                },
+                                              },
+                                              id: 43,
+                                            },
+                                            argument: {
+                                              term_type: "Apply",
+                                              id: 44,
+                                              function: {
+                                                term_type: "Constant",
 
-    private validateSession(sessionId: string): SessionData {
-        const session = this.sessions.get(sessionId);
-        if (!session) {
-            throw new Error(`Session ${sessionId} not found`);
-        }
-        return session;
+                                                constant: {
+                                                  type: "Bls12_381G1Element",
+                                                  serialized:
+                                                    "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1",
+                                                },
+                                                id: 45,
+                                              },
+                                              argument: {
+                                                term_type: "Apply",
+                                                id: 46,
+                                                function: {
+                                                  term_type: "Constant",
+
+                                                  constant: {
+                                                    type: "ProtoList",
+                                                    elementType: {
+                                                      type: "Pair",
+                                                      first_type: {
+                                                        type: "String",
+                                                      },
+                                                      second_type: {
+                                                        type: "Integer",
+                                                      },
+                                                    },
+                                                    values: [
+                                                      {
+                                                        type: "ProtoPair",
+                                                        first_type: {
+                                                          type: "String",
+                                                        },
+                                                        second_type: {
+                                                          type: "Integer",
+                                                        },
+                                                        first_element: {
+                                                          type: "String",
+                                                          value: "name",
+                                                        },
+                                                        second_element: {
+                                                          type: "Integer",
+                                                          value: "100",
+                                                        },
+                                                      },
+                                                      {
+                                                        type: "ProtoPair",
+                                                        first_type: {
+                                                          type: "String",
+                                                        },
+                                                        second_type: {
+                                                          type: "Integer",
+                                                        },
+                                                        first_element: {
+                                                          type: "String",
+                                                          value: "age",
+                                                        },
+                                                        second_element: {
+                                                          type: "Integer",
+                                                          value: "25",
+                                                        },
+                                                      },
+                                                      {
+                                                        type: "ProtoPair",
+                                                        first_type: {
+                                                          type: "String",
+                                                        },
+                                                        second_type: {
+                                                          type: "Integer",
+                                                        },
+                                                        first_element: {
+                                                          type: "String",
+                                                          value: "score",
+                                                        },
+                                                        second_element: {
+                                                          type: "Integer",
+                                                          value: "95",
+                                                        },
+                                                      },
+                                                    ],
+                                                  },
+                                                  id: 47,
+                                                },
+                                                argument: {
+                                                  term_type: "Apply",
+                                                  id: 48,
+                                                  function: {
+                                                    term_type: "Constant",
+
+                                                    constant: {
+                                                      type: "ProtoList",
+                                                      elementType: {
+                                                        type: "List",
+                                                        elementType: {
+                                                          type: "Integer",
+                                                        },
+                                                      },
+                                                      values: [
+                                                        {
+                                                          type: "ProtoList",
+                                                          elementType: {
+                                                            type: "Integer",
+                                                          },
+                                                          values: [
+                                                            {
+                                                              type: "Integer",
+                                                              value: "1",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "2",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "3",
+                                                            },
+                                                          ],
+                                                        },
+                                                        {
+                                                          type: "ProtoList",
+                                                          elementType: {
+                                                            type: "Integer",
+                                                          },
+                                                          values: [
+                                                            {
+                                                              type: "Integer",
+                                                              value: "10",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "20",
+                                                            },
+                                                          ],
+                                                        },
+                                                        {
+                                                          type: "ProtoList",
+                                                          elementType: {
+                                                            type: "Integer",
+                                                          },
+                                                          values: [
+                                                            {
+                                                              type: "Integer",
+                                                              value: "100",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "200",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "300",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "400",
+                                                            },
+                                                          ],
+                                                        },
+                                                      ],
+                                                    },
+                                                    id: 49,
+                                                  },
+                                                  argument: {
+                                                    term_type: "Apply",
+                                                    id: 50,
+                                                    function: {
+                                                      term_type: "Constant",
+
+                                                      constant: {
+                                                        type: "ProtoPair",
+                                                        first_type: {
+                                                          type: "List",
+                                                          elementType: {
+                                                            type: "String",
+                                                          },
+                                                        },
+                                                        second_type: {
+                                                          type: "List",
+                                                          elementType: {
+                                                            type: "Integer",
+                                                          },
+                                                        },
+                                                        first_element: {
+                                                          type: "ProtoList",
+                                                          elementType: {
+                                                            type: "String",
+                                                          },
+                                                          values: [
+                                                            {
+                                                              type: "String",
+                                                              value: "apple",
+                                                            },
+                                                            {
+                                                              type: "String",
+                                                              value: "banana",
+                                                            },
+                                                            {
+                                                              type: "String",
+                                                              value: "orange",
+                                                            },
+                                                          ],
+                                                        },
+                                                        second_element: {
+                                                          type: "ProtoList",
+                                                          elementType: {
+                                                            type: "Integer",
+                                                          },
+                                                          values: [
+                                                            {
+                                                              type: "Integer",
+                                                              value: "50",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "30",
+                                                            },
+                                                            {
+                                                              type: "Integer",
+                                                              value: "45",
+                                                            },
+                                                          ],
+                                                        },
+                                                      },
+                                                      id: 51,
+                                                    },
+                                                    argument: {
+                                                      term_type: "Apply",
+                                                      id: 52,
+                                                      function: {
+                                                        term_type: "Constant",
+
+                                                        constant: {
+                                                          type: "ProtoPair",
+                                                          first_type: {
+                                                            type: "Pair",
+                                                            first_type: {
+                                                              type: "String",
+                                                            },
+                                                            second_type: {
+                                                              type: "Integer",
+                                                            },
+                                                          },
+                                                          second_type: {
+                                                            type: "Pair",
+                                                            first_type: {
+                                                              type: "Bool",
+                                                            },
+                                                            second_type: {
+                                                              type: "ByteString",
+                                                            },
+                                                          },
+                                                          first_element: {
+                                                            type: "ProtoPair",
+                                                            first_type: {
+                                                              type: "String",
+                                                            },
+                                                            second_type: {
+                                                              type: "Integer",
+                                                            },
+                                                            first_element: {
+                                                              type: "String",
+                                                              value:
+                                                                "nested_key",
+                                                            },
+                                                            second_element: {
+                                                              type: "Integer",
+                                                              value: "777",
+                                                            },
+                                                          },
+                                                          second_element: {
+                                                            type: "ProtoPair",
+                                                            first_type: {
+                                                              type: "Bool",
+                                                            },
+                                                            second_type: {
+                                                              type: "ByteString",
+                                                            },
+                                                            first_element: {
+                                                              type: "Bool",
+                                                              value: false,
+                                                            },
+                                                            second_element: {
+                                                              type: "ByteString",
+                                                              value:
+                                                                "deadbeefcafe",
+                                                            },
+                                                          },
+                                                        },
+                                                        id: 53,
+                                                      },
+                                                      argument: {
+                                                        term_type: "Constant",
+
+                                                        constant: {
+                                                          type: "Data",
+                                                          data: {
+                                                            type: "Constr",
+                                                            tag: 0,
+                                                            fields: [
+                                                              { Int: "42" },
+                                                              {
+                                                                type: "BoundedBytes",
+                                                                value:
+                                                                  "48656c6c6f",
+                                                              },
+                                                              {
+                                                                type: "Array",
+                                                                values: [
+                                                                  { Int: "1" },
+                                                                  { Int: "2" },
+                                                                ],
+                                                              },
+                                                            ],
+                                                            any_constructor:
+                                                              null,
+                                                          },
+                                                        },
+                                                        id: 54,
+                                                      },
+                                                    },
+                                                  },
+                                                },
+                                              },
+                                            },
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            term_type: "Lambda",
+            parameterName: "datum",
+            id: 55,
+            body: {
+              term_type: "Lambda",
+              parameterName: "redeemer",
+              id: 56,
+              body: {
+                term_type: "Lambda",
+                parameterName: "context",
+                id: 57,
+                body: {
+                  term_type: "Case",
+                  id: 58,
+                  constr: {
+                    term_type: "Constr",
+                    id: 59,
+                    constructorTag: 1,
+                    fields: [
+                      {
+                        term_type: "Force",
+                        id: 60,
+                        term: {
+                          term_type: "Delay",
+                          id: 61,
+                          term: {
+                            term_type: "Apply",
+                            id: 62,
+                            function: {
+                              term_type: "Builtin",
+                              fun: "EqualsInteger",
+                              id: 63,
+                            },
+                            argument: {
+                              term_type: "Constant",
+                              constant: { type: "Integer", value: "42" },
+                              id: 64,
+                            },
+                          },
+                        },
+                      },
+                      {
+                        term_type: "Var",
+                        name: "datum",
+                        id: 65,
+                      },
+                    ],
+                  },
+                  branches: [
+                    // Branch 0: Success case
+                    {
+                      term_type: "Constant",
+                      constant: { type: "Bool", value: true },
+                      id: 66,
+                    },
+                    // Branch 1: Error case
+                    {
+                      term_type: "Error",
+                      id: 67,
+                    },
+                    // Branch 2: Complex nested case with more examples
+                    {
+                      term_type: "Apply",
+                      id: 68,
+                      function: {
+                        term_type: "Force",
+                        id: 69,
+                        term: {
+                          term_type: "Delay",
+                          id: 70,
+                          term: {
+                            term_type: "Constr",
+                            id: 71,
+                            constructorTag: 0,
+                            fields: [
+                              {
+                                term_type: "Constant",
+                                constant: {
+                                  type: "String",
+                                  value: "nested_constructor",
+                                },
+                                id: 72,
+                              },
+                              {
+                                term_type: "Apply",
+                                id: 73,
+                                function: {
+                                  term_type: "Builtin",
+                                  fun: "AddInteger",
+                                  id: 74,
+                                },
+                                argument: {
+                                  term_type: "Constant",
+                                  constant: { type: "Integer", value: "100" },
+                                  id: 75,
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      },
+                      argument: {
+                        term_type: "Case",
+                        id: 76,
+                        constr: {
+                          term_type: "Var",
+                          name: "redeemer",
+                          id: 77,
+                        },
+                        branches: [
+                          {
+                            term_type: "Constant",
+                            constant: { type: "ByteString", value: "deadbeef" },
+                            id: 78,
+                          },
+                          {
+                            term_type: "Error",
+                            id: 79,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+    };
+  }
+
+  public async getCurrentTermId(sessionId: string): Promise<string> {
+    this.validateSession(sessionId);
+    return "0";
+  }
+
+  public async getCurrentEnv(sessionId: string): Promise<Env> {
+    this.validateSession(sessionId);
+    return {
+      values: [
+        {
+          value_type: "Con",
+          constant: { type: "Integer", value: "42" },
+        },
+        {
+          value_type: "Con",
+          constant: { type: "String", value: "hello_world" },
+        },
+        {
+          value_type: "Con",
+          constant: { type: "Bool", value: true },
+        },
+        {
+          value_type: "Con",
+          constant: { type: "ByteString", value: "48656c6c6f" },
+        },
+        {
+          value_type: "Con",
+          constant: {
+            type: "Data",
+            data: {
+              type: "Array",
+              values: [
+                { Int: "1" },
+                { Int: "2" },
+                { Int: "3" },
+                { type: "BoundedBytes", value: "48656c6c6f" },
+                {
+                  type: "Constr",
+                  tag: 0,
+                  fields: [{ Int: "42" }],
+                  any_constructor: null,
+                },
+              ],
+            },
+          },
+        },
+
+        {
+          value_type: "Lambda",
+          parameterName: "x",
+          body: {
+            term_type: "Apply",
+
+            function: {
+              term_type: "Builtin",
+
+              fun: "AddInteger",
+              id: 80,
+            },
+            argument: {
+              term_type: "Var",
+
+              name: "x",
+              id: 81,
+            },
+            id: 82,
+          },
+          env: {
+            values: [],
+          },
+          term_id: 955,
+        },
+
+        {
+          value_type: "Delay",
+          body: {
+            term_type: "Constant",
+            constant: { type: "Integer", value: "100" },
+            id: 83,
+          },
+          env: {
+            values: [],
+          },
+          term_id: 965,
+        },
+
+        {
+          value_type: "Builtin",
+          fun: "AddInteger",
+          runtime: {
+            args: [
+              {
+                value_type: "Con",
+                constant: { type: "Integer", value: "10" },
+              },
+            ],
+            fun: "AddInteger",
+            forces: 0,
+            arity: 2,
+          },
+          term_id: 975,
+        },
+        {
+          value_type: "Constr",
+          tag: 1,
+          fields: [
+            {
+              value_type: "Con",
+              constant: { type: "String", value: "field1" },
+            },
+            {
+              value_type: "Con",
+              constant: { type: "Integer", value: "999" },
+            },
+          ],
+          term_id: 980,
+        },
+        {
+          value_type: "Con",
+          constant: {
+            type: "Data",
+            data: {
+              BigUInt: "1234567890abcdef1234567890abcdef",
+            },
+          },
+        },
+        {
+          value_type: "Con",
+          constant: {
+            type: "Data",
+            data: {
+              type: "Constr",
+              tag: 102,
+              fields: [
+                { type: "BoundedBytes", value: "cafebabe" },
+                { BigNInt: "fedcba0987654321" },
+                {
+                  type: "Map",
+                  key_value_pairs: [
+                    {
+                      key: { type: "BoundedBytes", value: "6b6579313233" },
+                      value: { Int: "999" },
+                    },
+                  ],
+                },
+              ],
+              any_constructor: 102,
+            },
+          },
+        },
+        {
+          value_type: "Constr",
+          tag: 2,
+          fields: [
+            {
+              value_type: "Constr",
+              tag: 0,
+              fields: [
+                {
+                  value_type: "Con",
+                  constant: { type: "Bool", value: false },
+                },
+              ],
+              term_id: 1050,
+            },
+            {
+              value_type: "Lambda",
+              parameterName: "y",
+              body: {
+                term_type: "Var",
+                name: "y",
+                id: 84,
+              },
+              env: {
+                values: [
+                  {
+                    value_type: "Con",
+                    constant: { type: "Integer", value: "123" },
+                  },
+                ],
+              },
+              term_id: 1051,
+            },
+          ],
+          term_id: 1046,
+        },
+        // UnsignedInteger constant
+        {
+          value_type: "Con",
+          constant: { type: "Integer", value: "42" },
+        },
+        // Simple ProtoList constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoList",
+            elementType: { type: "Integer" },
+            values: [
+              { type: "Integer", value: "1" },
+              { type: "Integer", value: "2" },
+              { type: "Integer", value: "3" },
+              { type: "Integer", value: "999" },
+              { type: "Integer", value: "1000" },
+            ],
+          },
+        },
+        // Simple ProtoPair constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoPair",
+            first_type: { type: "String" },
+            second_type: { type: "Integer" },
+            first_element: { type: "String", value: "pair_key" },
+            second_element: { type: "Integer", value: "12345" },
+          },
+        },
+        // Bls12_381G1Element constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "Bls12_381G1Element",
+            serialized:
+              "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1",
+          },
+        },
+        // List of Pairs constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoList",
+            elementType: {
+              type: "Pair",
+              first_type: { type: "String" },
+              second_type: { type: "Integer" },
+            },
+            values: [
+              {
+                type: "ProtoPair",
+                first_type: { type: "String" },
+                second_type: { type: "Integer" },
+                first_element: { type: "String", value: "name" },
+                second_element: { type: "Integer", value: "100" },
+              },
+              {
+                type: "ProtoPair",
+                first_type: { type: "String" },
+                second_type: { type: "Integer" },
+                first_element: { type: "String", value: "age" },
+                second_element: { type: "Integer", value: "25" },
+              },
+              {
+                type: "ProtoPair",
+                first_type: { type: "String" },
+                second_type: { type: "Integer" },
+                first_element: { type: "String", value: "score" },
+                second_element: { type: "Integer", value: "95" },
+              },
+            ],
+          },
+        },
+        // List of Lists constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoList",
+            elementType: {
+              type: "List",
+              elementType: { type: "Integer" },
+            },
+            values: [
+              {
+                type: "ProtoList",
+                elementType: { type: "Integer" },
+                values: [
+                  { type: "Integer", value: "1" },
+                  { type: "Integer", value: "2" },
+                  { type: "Integer", value: "3" },
+                ],
+              },
+              {
+                type: "ProtoList",
+                elementType: { type: "Integer" },
+                values: [
+                  { type: "Integer", value: "10" },
+                  { type: "Integer", value: "20" },
+                ],
+              },
+              {
+                type: "ProtoList",
+                elementType: { type: "Integer" },
+                values: [
+                  { type: "Integer", value: "100" },
+                  { type: "Integer", value: "200" },
+                  { type: "Integer", value: "300" },
+                  { type: "Integer", value: "400" },
+                ],
+              },
+            ],
+          },
+        },
+        // Pair of Lists constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoPair",
+            first_type: {
+              type: "List",
+              elementType: { type: "String" },
+            },
+            second_type: {
+              type: "List",
+              elementType: { type: "Integer" },
+            },
+            first_element: {
+              type: "ProtoList",
+              elementType: { type: "String" },
+              values: [
+                { type: "String", value: "apple" },
+                { type: "String", value: "banana" },
+                { type: "String", value: "orange" },
+              ],
+            },
+            second_element: {
+              type: "ProtoList",
+              elementType: { type: "Integer" },
+              values: [
+                { type: "Integer", value: "50" },
+                { type: "Integer", value: "30" },
+                { type: "Integer", value: "45" },
+              ],
+            },
+          },
+        },
+        // Nested Pair constant
+        {
+          value_type: "Con",
+          constant: {
+            type: "ProtoPair",
+            first_type: {
+              type: "Pair",
+              first_type: { type: "String" },
+              second_type: { type: "Integer" },
+            },
+            second_type: {
+              type: "Pair",
+              first_type: { type: "Bool" },
+              second_type: { type: "ByteString" },
+            },
+            first_element: {
+              type: "ProtoPair",
+              first_type: { type: "String" },
+              second_type: { type: "Integer" },
+              first_element: { type: "String", value: "nested_key" },
+              second_element: { type: "Integer", value: "777" },
+            },
+            second_element: {
+              type: "ProtoPair",
+              first_type: { type: "Bool" },
+              second_type: { type: "ByteString" },
+              first_element: { type: "Bool", value: false },
+              second_element: { type: "ByteString", value: "deadbeefcafe" },
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  public async start(sessionId: string): Promise<void> {
+    this.validateSession(sessionId);
+    for (let i = 0; i < 1000000000; i++) {}
+  }
+
+  public async continue(sessionId: string): Promise<void> {
+    this.validateSession(sessionId);
+    for (let i = 0; i < 1000000000; i++) {}
+  }
+
+  public async step(sessionId: string): Promise<void> {
+    const session = this.validateSession(sessionId);
+    for (let i = 0; i < 1000000000; i++) {}
+    session.budget.exUnitsSpent += 10;
+    session.budget.memoryUnitsSpent += 15;
+  }
+
+  public async stop(sessionId: string): Promise<void> {
+    const session = this.validateSession(sessionId);
+    for (let i = 0; i < 1000000000; i++) {}
+    session.budget.exUnitsSpent += 10;
+    session.budget.memoryUnitsSpent += 15;
+  }
+
+  public async pause(sessionId: string): Promise<void> {
+    this.validateSession(sessionId);
+    for (let i = 0; i < 1000000000; i++) {}
+  }
+
+  public async setBreakpointsList(
+    sessionId: string,
+    breakpoints: string[]
+  ): Promise<void> {
+    this.validateSession(sessionId);
+    // Mock implementation - store breakpoints if needed
+  }
+
+  private validateSession(sessionId: string): SessionData {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      throw new Error(`Session ${sessionId} not found`);
     }
+    return session;
+  }
 }
 
 class SessionData {
-    public budget: Budget;
-    public readonly redeemer: string;
-    public isFinished: boolean = false;
+  public budget: Budget;
+  public readonly redeemer: string;
+  public isFinished: boolean = false;
 
-    constructor(redeemer: string) {
-        this.redeemer = redeemer;
-        this.budget = {
-            exUnitsSpent: 100,
-            exUnitsAvailable: 50,
-            memoryUnitsSpent: 0,
-            memoryUnitsAvailable: 0
-        };
-    }
-} 
+  constructor(redeemer: string) {
+    this.redeemer = redeemer;
+    this.budget = {
+      exUnitsSpent: 100,
+      exUnitsAvailable: 50,
+      memoryUnitsSpent: 0,
+      memoryUnitsAvailable: 0,
+    };
+  }
+}

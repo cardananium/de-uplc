@@ -1,8 +1,5 @@
 import { Budget } from "../common";
-import { Context } from "../uplc-models/context";
-import { MachineState } from "../uplc-models/machine-state";
-import { TermWithId } from "../uplc-models/term";
-import { Value } from "../uplc-models/value";
+import { MachineContext, MachineState, Term, Env } from "../debugger-types";
 
 export interface IDebuggerEngine {
     // Methods from DebuggerManager
@@ -18,13 +15,13 @@ export interface IDebuggerEngine {
     getPlutusCoreVersion(sessionId: string): Promise<string>;
     getPlutusLanguageVersion(sessionId: string): Promise<string | undefined>;
     getScriptHash(sessionId: string): Promise<string>;
-    getMachineContext(sessionId: string): Promise<Context[]>;
+    getMachineContext(sessionId: string): Promise<MachineContext[]>;
     getLogs(sessionId: string): Promise<string[]>;
     getMachineState(sessionId: string): Promise<MachineState>;
     getBudget(sessionId: string): Promise<Budget>;
-    getScript(sessionId: string): Promise<TermWithId>;
+    getScript(sessionId: string): Promise<Term>;
     getCurrentTermId(sessionId: string): Promise<string>;
-    getCurrentEnv(sessionId: string): Promise<Value[]>;
+    getCurrentEnv(sessionId: string): Promise<Env>;
     start(sessionId: string): Promise<void>;
     continue(sessionId: string): Promise<void>;
     step(sessionId: string): Promise<void>;
