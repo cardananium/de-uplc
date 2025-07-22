@@ -1,8 +1,5 @@
 import { Budget } from "../common";
-import { Context } from "../uplc-models/context";
-import { MachineState } from "../uplc-models/machine-state";
-import { TermWithId } from "../uplc-models/term";
-import { Value } from "../uplc-models/value";
+import { Env, MachineContext, MachineState, Term } from "../debugger-types";
 import { IDebuggerEngine } from "./debugger-engine.interface";
 
 export class SessionController {
@@ -33,7 +30,7 @@ export class SessionController {
         return this.debuggerEngine.getScriptHash(this.sessionId);
     }
 
-    public async getMachineContext(): Promise<Context[]> {
+    public async getMachineContext(): Promise<MachineContext[]> {
         return this.debuggerEngine.getMachineContext(this.sessionId);
     }
 
@@ -49,7 +46,7 @@ export class SessionController {
         return this.debuggerEngine.getBudget(this.sessionId);
     }
 
-    public async getScript(): Promise<TermWithId> {
+    public async getScript(): Promise<Term> {
         return this.debuggerEngine.getScript(this.sessionId);
     }
 
@@ -57,7 +54,7 @@ export class SessionController {
         return this.debuggerEngine.getCurrentTermId(this.sessionId);
     }
 
-    public async getCurrentEnv(): Promise<Value[]> {
+    public async getCurrentEnv(): Promise<Env> {
         return this.debuggerEngine.getCurrentEnv(this.sessionId);
     }
 

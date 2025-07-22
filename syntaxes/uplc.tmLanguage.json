@@ -1,0 +1,190 @@
+{
+  "name": "UPLC",
+  "scopeName": "source.uplc",
+  "fileTypes": ["uplc"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#builtins" },
+    { "include": "#constant-types-int" },
+    { "include": "#constant-types" },
+    { "include": "#terms-with-names" },
+    { "include": "#terms" },
+    { "include": "#variables" },
+    { "include": "#value" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.uplc",
+          "begin": "//",
+          "end": "$"
+        }
+      ]
+    },
+    "terms": {
+      "match": "\\b(Apply|Delay|Force|Constr|Case|Error|⚠️|⚠️Error)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.uplc" }
+      }
+    },
+    "terms-with-names": {
+      "match": "\\b(Var|λ)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.control.uplc" },
+        "2": { "name": "variable.other.uplc" }
+      }
+    },
+    "builtins": {
+      "match": "\\b(Built-in)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.control.uplc" },
+        "2": { "name": "entity.name.function.uplc" }
+      }
+    },
+    "constant-types": {
+      "match": "\\b(Const)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.control.uplc" },
+        "2": { "name": "storage.type.uplc entity.name.type.uplc" }
+      }
+    },
+    "constant-types-int": {
+      "match": "\\b(Const)\\b\\s+(Integer):\\s+\"([0-9]+)\"",
+      "captures": {
+        "1": { "name": "keyword.control.uplc" },
+        "2": { "name": "storage.type.uplc entity.name.type.uplc" },
+        "3": { "name": "constant.numeric.uplc" }
+      }
+    },
+    "value": {
+      "patterns": [
+        { "include": "#string" },
+        { "include": "#number" },
+        { "include": "#builtins" },
+        { "include": "#terms-with-names" },
+        { "include": "#terms" },
+        { "include": "#constant-types-int" },
+        { "include": "#constant-types" },
+        { "include": "#object" },
+        { "include": "#array" },
+        { "include": "#boolean" },
+        { "include": "#null" },
+        { "include": "#plutus-specific" },
+        { "include": "#property-name-unquoted" }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.uplc",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "include": "#string-content" }
+          ]
+        }
+      ]
+    },
+    "string-content": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.uplc",
+          "match": "\\\\([\"\\\\bfnrt]|u[0-9a-fA-F]{4})"
+        }
+      ]
+    },
+    "number": {
+      "name": "constant.numeric.uplc",
+      "match": "-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?"
+    },
+    "object": {
+      "name": "meta.structure.dictionary.uplc",
+      "begin": "{",
+      "end": "}",
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#object-key-quoted" },
+        { "include": "#special-property-names" },
+        { "include": "#object-key-unquoted" },
+        {
+          "name": "meta.structure.dictionary.uplc",
+          "match": "[^\\s\\}]"
+        }
+      ]
+    },
+    "object-key-quoted": {
+      "name": "meta.structure.dictionary.value.uplc",
+      "begin": "\"([^\"\\\\]|\\\\.)*\"\\s*:",
+      "end": "(?=,|})",
+      "beginCaptures": {
+        "0": { "name": "support.type.property-name.uplc" }
+      },
+      "patterns": [
+        { "include": "#value" }
+      ]
+    },
+    "object-key-unquoted": {
+      "name": "meta.structure.dictionary.value.uplc",
+      "begin": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\s*:",
+      "end": "(?=,|})",
+      "beginCaptures": {
+        "0": { "name": "support.type.property-name.uplc" }
+      },
+      "patterns": [
+        { "include": "#value" }
+      ]
+    },
+    "array": {
+      "name": "meta.structure.array.uplc",
+      "begin": "\\[",
+      "end": "\\]",
+      "patterns": [
+        { "include": "#value" },
+        {
+          "name": "meta.structure.array.uplc",
+          "match": "[^\\s\\]]"
+        }
+      ]
+    },
+    "boolean": {
+      "name": "constant.language.uplc",
+      "match": "\\b(?:true|false)\\b"
+    },
+    "null": {
+      "name": "constant.language.uplc",
+      "match": "\\bnull\\b"
+    },
+    "plutus-specific": {
+      "patterns": [
+        {
+          "match": "\\b(Integer|ByteString|String|Bool|ProtoList|ProtoPair|List|Pair|Data|Bls12_381G1Element|Bls12_381G2Element|Bls12_381MlResult)\\b",
+          "name": "storage.type.uplc entity.name.type.uplc"
+        },
+        {
+          "match": "\\b(Constr|Map|Array|BigInt|BoundedBytes|BigUInt|BigNInt)\\b",
+          "name": "storage.type.uplc entity.name.type.uplc"
+        }
+      ]
+    },
+    "special-property-names": {
+      "name": "meta.structure.dictionary.value.uplc",
+      "begin": "\\b(param|body|constr|term|fun|arg|name|tag|fields|branches|elementType|values|first_type|second_type|first_element|second_element|x|y|z)\\s*:",
+      "end": "(?=,|})",
+      "beginCaptures": {
+        "1": { "name": "storage.modifier.uplc" }
+      },
+      "patterns": [
+        { "include": "#value" }
+      ]
+    },
+    "property-name-unquoted": {
+      "patterns": [
+        {
+          "match": "\\b(param|body|constr|term|fun|arg|name|tag|fields|branches|elementType|values|first_type|second_type|first_element|second_element|x|y|z)\\b(?=\\s*:)",
+          "name": "storage.modifier.uplc"
+        }
+      ]
+    }
+  }
+} 

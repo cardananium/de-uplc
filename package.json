@@ -23,19 +23,125 @@
           ".pludata"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "uplc",
+        "aliases": [
+          "UPLC",
+          "Untyped Plutus Core"
+        ],
+        "extensions": [
+          ".uplc"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
+    "configurationDefaults": {
+      "[uplc]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
     "grammars": [
       {
         "language": "plutus-types-json",
         "scopeName": "source.plutus-types-json",
         "path": "./syntaxes/plutus-types.tmLanguage.json"
+      },
+      {
+        "language": "uplc",
+        "scopeName": "source.uplc",
+        "path": "./syntaxes/uplc.tmLanguage.json"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "uplc",
+        "scopes": {
+          "namespace": [
+            "entity.name.namespace.uplc"
+          ],
+          "type": [
+            "entity.name.type.uplc",
+            "entity.name.type",
+            "storage.type"
+          ],
+          "class": [
+            "entity.name.class.uplc",
+            "support.class"
+          ],
+          "enum": [
+            "entity.name.enum.uplc"
+          ],
+          "interface": [
+            "entity.name.interface.uplc"
+          ],
+          "struct": [
+            "entity.name.struct.uplc"
+          ],
+          "typeParameter": [
+            "entity.name.type.parameter.uplc"
+          ],
+          "parameter": [
+            "variable.parameter.uplc"
+          ],
+          "variable": [
+            "variable.other.uplc",
+            "variable.function"
+          ],
+          "property": [
+            "variable.other.property.uplc"
+          ],
+          "enumMember": [
+            "constant.language.boolean.uplc"
+          ],
+          "event": [
+            "entity.name.event.uplc",
+            "invalid.illegal.error.uplc"
+          ],
+          "function": [
+            "entity.name.function.uplc",
+            "entity.name.function"
+          ],
+          "method": [
+            "entity.name.method.uplc"
+          ],
+          "macro": [
+            "keyword.control.macro.uplc"
+          ],
+          "keyword": [
+            "keyword.control.uplc",
+            "keyword.other"
+          ],
+          "modifier": [
+            "storage.modifier.uplc"
+          ],
+          "comment": [
+            "comment.uplc"
+          ],
+          "string": [
+            "string.quoted.uplc"
+          ],
+          "number": [
+            "constant.numeric.uplc"
+          ],
+          "regexp": [
+            "string.regexp.uplc"
+          ],
+          "operator": [
+            "keyword.operator.uplc"
+          ]
+        }
       }
     ],
     "commands": [
       {
         "command": "termViewer.toggleBreakpoint",
         "title": "Toggle Term Breakpoint",
+        "category": "Term Viewer"
+      },
+      {
+        "command": "termViewer.toggleInlayHints",
+        "title": "Toggle Inlay Hints",
         "category": "Term Viewer"
       },
       {
@@ -144,13 +250,28 @@
         }
       ]
     },
-        "keybindings": [
+    "keybindings": [
       {
         "command": "termViewer.toggleBreakpoint",
         "key": "F9",
         "when": "resourceScheme == term-viewer"
+      },
+      {
+        "command": "termViewer.toggleInlayHints",
+        "key": "ctrl+alt+h",
+        "when": "resourceScheme == term-viewer"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "DE-UPLC",
+      "properties": {
+        "deuplc.enableInlayHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inlay hints in the term viewer."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -161,7 +282,10 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "generate-schemas": "cd rust-src && cargo run --bin generate_schemas",
+    "generate-types": "node scripts/generate-types.js",
+    "generate-all": "npm run generate-schemas && npm run generate-types"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.4",
@@ -174,6 +298,7 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.13.0",
     "file-loader": "^6.2.0",
+    "json-schema-to-typescript": "^15.0.4",
     "jsonc-parser": "^3.3.1",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.3",
@@ -182,6 +307,7 @@
   },
   "dependencies": {
     "@vscode/codicons": "^0.0.36",
+    "de-uplc": "file:./rust-src/pkg/",
     "json-bigint": "^1.0.0"
   }
 }

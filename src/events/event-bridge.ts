@@ -367,7 +367,7 @@ export class EventBridge {
 
       // Generate a meaningful filename based on the node
       const fileName = this.generateNodeFileName(node);
-      
+
       // Check if it's a plain text log entry
       if (typeof nodeData === 'string') {
         await this.showPlainTextInTab(nodeData, fileName);

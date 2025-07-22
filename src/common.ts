@@ -1,5 +1,5 @@
 export interface Breakpoint {
-    id: string;
+    id: number;
     line: number;
     active: boolean;
 }
