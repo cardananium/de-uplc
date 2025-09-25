@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { SessionController } from './session-controller';
 import { IDebuggerEngine } from './debugger-engine.interface';
-
+import { DataProvider } from '../data-providers/data-provider.interface';
+import { getOnlineProvider, getOfflineDataProvider } from '../data-providers';
 import { DebuggerContext, Network, UtxoOutput, UtxoReference, ProtocolParameters } from '../common';
 import { EventEmitter } from '../events/event-emitter';
 import { ExecutionStatus, Term } from '../debugger-types';
@@ -22,7 +23,8 @@ export class DebuggerManager {
 
     public async openTransaction(path: string) {
         const context = await this.readTransactionContext(path);
-        return this.debuggerEngine.openTransaction(context);
+        const filledContext = await this.fillContextData(context);
+        return this.debuggerEngine.openTransaction(filledContext);
     }
 
     private attachEngineSubscriptions() {
@@ -124,6 +126,118 @@ export class DebuggerManager {
 
         } catch (error) {
             throw new Error(`Failed to read transaction file: ${error}`);
+        }
+    }
+
+    /**
+     * Fills missing data in DebuggerContext following this workflow:
+     * 1. If DebuggerContext already has required data, don't fetch it
+     * 2. If not, try to fetch from offline provider first
+     * 3. If offline provider doesn't have it, fetch from koios provider
+     */
+    public async fillContextData(context: DebuggerContext): Promise<DebuggerContext> {
+        const filledContext = { ...context };
+
+        // Ensure network is selected before fetching any network-dependent data
+        if (!filledContext.network) {
+            const selected = await vscode.window.showQuickPick(
+                ['mainnet', 'preprod', 'preview'],
+                {
+                    title: 'Select Network',
+                    placeHolder: 'Choose the network to use for fetching UTXOs and protocol parameters',
+                    ignoreFocusOut: true,
+                }
+            );
+
+            if (!selected) {
+                // User cancelled selection — require an explicit choice to proceed
+                await vscode.window.showErrorMessage('Network selection is required to proceed.', { modal: true });
+                throw new Error('Network selection cancelled by user');
+            }
+
+            filledContext.network = selected as Network;
+        }
+
+        const network: Network = filledContext.network as Network;
+
+        // Fill UTXOs if missing
+        if (!filledContext.utxos) {
+            try {
+                const requiredUtxos = await this.debuggerEngine.getRequiredUtxos(context.transaction);
+                if (requiredUtxos.length > 0) {
+                    filledContext.utxos = await this.fetchUtxos(requiredUtxos, network);
+                    console.log('Fetched UTXOs:', filledContext.utxos);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch required UTXOs:', error);
+                filledContext.utxos = [];
+            }
+        }
+
+        // Fill protocol parameters if missing
+        if (!filledContext.protocolParams) {
+            try {
+                filledContext.protocolParams = await this.fetchProtocolParameters(network);
+            } catch (error) {
+                console.warn('Failed to fetch protocol parameters:', error);
+            }
+        }
+
+        return filledContext;
+    }
+
+    /**
+     * Fetches UTXOs with fallback: offline provider first, then koios provider
+     */
+    private async fetchUtxos(requiredUtxos: UtxoReference[], network: Network): Promise<UtxoOutput[]> {
+        const dataProvider = getOnlineProvider();
+        const offlineDataProvider = getOfflineDataProvider();
+        let utxos: UtxoOutput[] = [];
+        let missingUtxos = [...requiredUtxos];
+
+        // Try offline provider first
+        try {
+            utxos = await offlineDataProvider.getUtxoInfo(requiredUtxos, network);
+            missingUtxos = requiredUtxos.filter(utxo =>
+                !utxos.find(u => u.txHash === utxo.txHash && u.outputIndex === utxo.outputIndex)
+            );
+        } catch (error) {
+            console.warn('Offline provider failed to fetch UTXOs:', error);
+        }
+
+        // If there are still missing UTXOs, try koios provider
+        if (missingUtxos.length > 0) {
+            try {
+                const additionalUtxos = await dataProvider.getUtxoInfo(missingUtxos, network);
+                utxos = [...utxos, ...additionalUtxos];
+            } catch (error) {
+                console.warn('Koios provider failed to fetch UTXOs:', error);
+            }
+        }
+
+        return utxos;
+    }
+
+    /**
+     * Fetches protocol parameters with fallback: offline provider first, then koios provider
+     */
+    private async fetchProtocolParameters(network: Network): Promise<ProtocolParameters | undefined> {
+        const dataProvider = getOnlineProvider();
+        const offlineDataProvider = getOfflineDataProvider();
+
+        // Try offline provider first
+        try {
+            return await offlineDataProvider.getProtocolParameters(network);
+        } catch (error) {
+            console.warn('Offline provider failed to fetch protocol parameters:', error);
+        }
+
+        // If offline provider failed, try koios provider
+        try {
+            return await dataProvider.getProtocolParameters(network);
+        } catch (error) {
+            console.warn('Koios provider failed to fetch protocol parameters:', error);
+            return undefined;
         }
     }
 }
