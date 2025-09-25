@@ -1,0 +1,1076 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SerializableContext",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameAwaitArg"
+        },
+        "value": {
+          "$ref": "#/$defs/SerializableValue"
+        }
+      },
+      "required": [
+        "context_type",
+        "value",
+        "context"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameAwaitFunTerm"
+        },
+        "env": {
+          "$ref": "#/$defs/SerializableEnv"
+        },
+        "term": {
+          "$ref": "#/$defs/SerializableTerm"
+        }
+      },
+      "required": [
+        "context_type",
+        "env",
+        "term",
+        "context"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameAwaitFunValue"
+        },
+        "value": {
+          "$ref": "#/$defs/SerializableValue"
+        }
+      },
+      "required": [
+        "context_type",
+        "value",
+        "context"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameForce"
+        }
+      },
+      "required": [
+        "context_type",
+        "context"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameConstr"
+        },
+        "env": {
+          "$ref": "#/$defs/SerializableEnv"
+        },
+        "tag": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "term_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "terms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTerm"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableValue"
+          }
+        }
+      },
+      "required": [
+        "context_type",
+        "env",
+        "tag",
+        "terms",
+        "values",
+        "context",
+        "term_id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context": {
+          "$ref": "#"
+        },
+        "context_type": {
+          "type": "string",
+          "const": "FrameCases"
+        },
+        "env": {
+          "$ref": "#/$defs/SerializableEnv"
+        },
+        "terms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTerm"
+          }
+        }
+      },
+      "required": [
+        "context_type",
+        "env",
+        "terms",
+        "context"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "context_type": {
+          "type": "string",
+          "const": "NoFrame"
+        }
+      },
+      "required": [
+        "context_type"
+      ]
+    }
+  ],
+  "$defs": {
+    "SerializableBuiltinRuntime": {
+      "type": "object",
+      "properties": {
+        "args": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableValue"
+          }
+        },
+        "arity": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "forces": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "fun": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "args",
+        "fun",
+        "forces",
+        "arity"
+      ]
+    },
+    "SerializableConstant": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Integer"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "ByteString"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "String"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Bool"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Unit"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "elementType": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProtoList"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableConstant"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "elementType",
+            "values"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "first_element": {
+              "$ref": "#/$defs/SerializableConstant"
+            },
+            "first_type": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "second_element": {
+              "$ref": "#/$defs/SerializableConstant"
+            },
+            "second_type": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "type": {
+              "type": "string",
+              "const": "ProtoPair"
+            }
+          },
+          "required": [
+            "type",
+            "first_type",
+            "second_type",
+            "first_element",
+            "second_element"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "type": {
+              "type": "string",
+              "const": "Data"
+            }
+          },
+          "required": [
+            "type",
+            "data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "serialized": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "Bls12_381G1Element"
+            }
+          },
+          "required": [
+            "type",
+            "serialized"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "serialized": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "Bls12_381G2Element"
+            }
+          },
+          "required": [
+            "type",
+            "serialized"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "bytes": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "Bls12_381MlResult"
+            }
+          },
+          "required": [
+            "type",
+            "bytes"
+          ]
+        }
+      ]
+    },
+    "SerializableEnv": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableValue"
+          }
+        }
+      },
+      "required": [
+        "values"
+      ]
+    },
+    "SerializableKeyValuePair": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        },
+        "value": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    },
+    "SerializablePlutusData": {
+      "description": "Serializable version of PlutusData that can be converted to/from JSON",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "any_constructor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            },
+            "plutus_data_type": {
+              "type": "string",
+              "const": "Constr"
+            },
+            "tag": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "plutus_data_type",
+            "tag",
+            "fields"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "key_value_pairs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableKeyValuePair"
+              }
+            },
+            "plutus_data_type": {
+              "type": "string",
+              "const": "Map"
+            }
+          },
+          "required": [
+            "plutus_data_type",
+            "key_value_pairs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "plutus_data_type": {
+              "type": "string",
+              "const": "BigInt"
+            }
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Int": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "Int"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "BigUInt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "BigUInt"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "BigNInt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "BigNInt"
+              ]
+            }
+          ],
+          "required": [
+            "plutus_data_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "plutus_data_type": {
+              "type": "string",
+              "const": "BoundedBytes"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "plutus_data_type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "plutus_data_type": {
+              "type": "string",
+              "const": "Array"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            }
+          },
+          "required": [
+            "plutus_data_type",
+            "values"
+          ]
+        }
+      ]
+    },
+    "SerializableTerm": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "name": {
+              "type": "string"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Var"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "name"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Delay"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "term"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "body": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "parameterName": {
+              "type": "string"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Lambda"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "parameterName",
+            "body"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "argument": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "function": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Apply"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "function",
+            "argument"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "constant": {
+              "$ref": "#/$defs/SerializableConstant"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Constant"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "constant"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Force"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "term"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Error"
+            }
+          },
+          "required": [
+            "term_type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fun": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Builtin"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "fun"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "constructorTag": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableTerm"
+              }
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Constr"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "constructorTag",
+            "fields"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "branches": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableTerm"
+              }
+            },
+            "constr": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "term_type": {
+              "type": "string",
+              "const": "Case"
+            }
+          },
+          "required": [
+            "term_type",
+            "id",
+            "constr",
+            "branches"
+          ]
+        }
+      ]
+    },
+    "SerializableType": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Bool"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Integer"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "String"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "ByteString"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Unit"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "elementType": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "type": {
+              "type": "string",
+              "const": "List"
+            }
+          },
+          "required": [
+            "type",
+            "elementType"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "first_type": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "second_type": {
+              "$ref": "#/$defs/SerializableType"
+            },
+            "type": {
+              "type": "string",
+              "const": "Pair"
+            }
+          },
+          "required": [
+            "type",
+            "first_type",
+            "second_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Data"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Bls12_381G1Element"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Bls12_381G2Element"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Bls12_381MlResult"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      ]
+    },
+    "SerializableValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "constant": {
+              "$ref": "#/$defs/SerializableConstant"
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Con"
+            }
+          },
+          "required": [
+            "value_type",
+            "constant"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "body": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "env": {
+              "$ref": "#/$defs/SerializableEnv"
+            },
+            "term_id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Delay"
+            }
+          },
+          "required": [
+            "value_type",
+            "body",
+            "env",
+            "term_id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "body": {
+              "$ref": "#/$defs/SerializableTerm"
+            },
+            "env": {
+              "$ref": "#/$defs/SerializableEnv"
+            },
+            "parameterName": {
+              "type": "string"
+            },
+            "term_id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Lambda"
+            }
+          },
+          "required": [
+            "value_type",
+            "parameterName",
+            "body",
+            "env",
+            "term_id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fun": {
+              "type": "string"
+            },
+            "runtime": {
+              "$ref": "#/$defs/SerializableBuiltinRuntime"
+            },
+            "term_id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Builtin"
+            }
+          },
+          "required": [
+            "value_type",
+            "fun",
+            "runtime",
+            "term_id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableValue"
+              }
+            },
+            "tag": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "term_id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Constr"
+            }
+          },
+          "required": [
+            "value_type",
+            "tag",
+            "fields",
+            "term_id"
+          ]
+        }
+      ]
+    }
+  }
+}

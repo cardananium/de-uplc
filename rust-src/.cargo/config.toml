@@ -1,0 +1,12 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-C", "target-cpu=mvp",
+    # "-C", "link-arg=--stack-first",
+    # "-C", "link-arg=-z stack-first",
+    # "-C", "link-args=-z stack-size=209715200",
+    # "-C", "link-args=-z initial-memory=268435456",
+    # "-C", "link-args=-z max-memory=1073741824"
+]
+
+[unstable]
+build-std = ["std", "panic_abort"]

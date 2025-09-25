@@ -14,6 +14,10 @@ export class SessionController {
         return this.debuggerEngine.getTxScriptContext(this.sessionId);
     }
 
+    public async setBreakpoints(breakpoints: number[]) {
+        return this.debuggerEngine.setBreakpointsList(this.sessionId, breakpoints);
+    }
+
     public async getRedeemer(): Promise<string> {
         return this.debuggerEngine.getRedeemer(this.sessionId);
     }
@@ -38,23 +42,23 @@ export class SessionController {
         return this.debuggerEngine.getLogs(this.sessionId);
     }
 
-    public async getMachineState(): Promise<MachineState> {
+    public async getMachineState(): Promise<MachineState | undefined> {
         return this.debuggerEngine.getMachineState(this.sessionId);
     }
 
-    public async getBudget(): Promise<Budget> {
+    public async getBudget(): Promise<Budget | undefined> {
         return this.debuggerEngine.getBudget(this.sessionId);
     }
 
-    public async getScript(): Promise<Term> {
+    public async getScript(): Promise<Term | undefined> {
         return this.debuggerEngine.getScript(this.sessionId);
     }
 
-    public async getCurrentTermId(): Promise<string> {
+    public async getCurrentTermId(): Promise<number | undefined> {
         return this.debuggerEngine.getCurrentTermId(this.sessionId);
     }
 
-    public async getCurrentEnv(): Promise<Env> {
+    public async getCurrentEnv(): Promise<Env | undefined> {
         return this.debuggerEngine.getCurrentEnv(this.sessionId);
     }
 
@@ -78,7 +82,7 @@ export class SessionController {
         return this.debuggerEngine.pause(this.sessionId);
     }
 
-    public setBreakpointsList(breakpoints: string[]) {
+    public async setBreakpointsList(breakpoints: number[]) {
         return this.debuggerEngine.setBreakpointsList(this.sessionId, breakpoints);
     }
 }

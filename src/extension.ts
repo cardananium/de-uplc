@@ -4,16 +4,20 @@ import { UplcTreeDataProvider } from './sections/uplc-tree/uplc-tree-data-provid
 import { LogsTreeDataProvider } from './sections/logs-tree-data-provider';
 import { BreakpointsTreeDataProvider } from './sections/breakpoints-tree-data-provider';
 import { DebuggerPanelViewProvider } from './sections/debugger-panel-view-provider';
+import { AdditionalControlsViewProvider } from './sections/additional-controls-view-provider';
 import { EventBridge } from './events/event-bridge';
 import { DebuggerManager } from './debugger/debugger-manager';
 import { TabManager } from './tabs/tab-manager';
+import { getProviders, registerDataProviders } from './data-providers/providers';
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('!!!!!!Congratulations, your extension "de-uplc" is now active!!!!!!!!!!!!!!!!!');
+  console.log('[DE-UPLC] Activating extension...');
 
+  registerDataProviders(context);
   const debuggerManager = new DebuggerManager();
   const tabManager = TabManager.register(context);
   const debuggerPanelViewProvider = DebuggerPanelViewProvider.register(context);
+  const additionalControlsViewProvider = AdditionalControlsViewProvider.register(context);
   const machineContextTreeDataProvider = UplcTreeDataProvider.register(context, "machineContextTreeDataProvider");
   const machineStateTreeDataProvider = UplcTreeDataProvider.register(context, "machineStateTreeDataProvider");
   const environmentsTreeDataProvider = UplcTreeDataProvider.register(context, "environmentsTreeDataProvider");
@@ -34,11 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   bridge.registerCommands();
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand('deuplc.newSession', () => {
-      vscode.window.showInformationMessage('View is refreshed!');
-    })
-  );
+  console.log('[DE-UPLC] Extension activated.');
 }
 
 export function deactivate() { }

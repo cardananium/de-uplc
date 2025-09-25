@@ -65,7 +65,7 @@ export class DebuggerPanelViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtml(codiconUri);
 
     // --- Debugger Session Manager Message Handling ---
-    webviewView.webview.onDidReceiveMessage((message) => {
+    webviewView.webview.onDidReceiveMessage(async (message) => {
       console.log("[Debugger Panel] Received message:", message);
       
       if (
@@ -124,7 +124,7 @@ export class DebuggerPanelViewProvider implements vscode.WebviewViewProvider {
               break;
             }
             if(message.value === CHOOSE_REDEEMER) {
-              this.selectRedeemer(message.value);
+              await this.selectRedeemer(message.value);
               EventEmitter.selectRedeemer(this._currentRedeemer);
               break;
             }
@@ -136,14 +136,14 @@ export class DebuggerPanelViewProvider implements vscode.WebviewViewProvider {
                 "Yes",
                 "No"
               )
-              .then((selection) => {
+              .then(async (selection) => {
                 if (selection === "Yes") {
                   this._currentRedeemer = message.value;
                   EventEmitter.selectRedeemer(this._currentRedeemer);
                 } else {
                   this.unlockInterface();
                 }
-                this.selectRedeemer(this._currentRedeemer);
+                await this.selectRedeemer(this._currentRedeemer);
               });
             break;
           default:
@@ -239,25 +239,25 @@ public setDebuggerState(state: SessionState): void {
     }
   }
 
-  public selectRedeemer(redeemer: string): void {
+  public async selectRedeemer(redeemer: string): Promise<void> {
     // Allow selecting "Choose redeemer" - user must make an explicit choice
-    if (this._view) {
-      this._view.webview.postMessage({
-        command: "selectRedeemer",
-        redeemer,
-      });
-      
+    if (this._view) {      
       // If a non-ephemeral redeemer is selected, remove the ephemeral one from the list
       if (redeemer !== CHOOSE_REDEEMER && redeemer !== "No redeemers available" && this.redeemers) {
         const updatedRedeemers = this.redeemers.filter(r => r !== CHOOSE_REDEEMER);
         if (this.redeemers.includes(CHOOSE_REDEEMER)) {
           this.redeemers = updatedRedeemers;
-          this._view.webview.postMessage({
+          await this._view.webview.postMessage({
             command: "updateRedeemers",
             redeemers: updatedRedeemers,
           });
         }
       }
+
+      await this._view.webview.postMessage({
+        command: "selectRedeemer",
+        redeemer,
+      });
     }
     this._currentRedeemer = redeemer;
   }

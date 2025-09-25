@@ -307,6 +307,11 @@ export class TermViewerProvider {
         return provider;
     }
 
+    public clearBreakpoints() {
+        this._breakpoints.clear();
+        this.updateAllDecorations();
+    }
+
     private setCurrentEditor(editor: vscode.TextEditor) {
         this._currentEditor = editor;
     }
@@ -489,7 +494,7 @@ export class TermViewerProvider {
         let idPos = prefixLength + termText.length;
         const braceIndex = termText.indexOf(' {');
         if (braceIndex !== -1) {
-            idPos = prefixLength + termText.length - " {".length;
+            idPos = prefixLength + braceIndex;
         } else if (termText.endsWith(',')) {
             idPos = prefixLength + termText.length - 1;
         }
@@ -572,6 +577,8 @@ export class TermViewerProvider {
         const braceIndex = termText.indexOf(' {');
         if (braceIndex !== -1) {
             idPos = prefixLength + braceIndex;
+        } else if (termText.endsWith(',')) {
+            idPos = prefixLength + termText.length - 1;
         }
         
         hints.push({
@@ -963,7 +970,8 @@ export class TermViewerProvider {
             case 'Var':
                 output = `${this.getShortTermType(term.term_type)} ${term.name}`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 currentLine += 1;
@@ -972,13 +980,17 @@ export class TermViewerProvider {
             case 'Apply':
                 output = `${this.getShortTermType(term.term_type)} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
+                currentLine += 1; // Apply { line
                 
                 output += '\n  fun: ';
-                currentLine += 1; // fn: line
-                const funcResult = this.processTermWithLocations(term.function, currentLine, uriString, visited, indentLevel + 1, true, 'fun: ');
+                const funcStartLine = currentLine;
+                currentLine += 1; // fun: line - this is where the nested term starts
+                const funcPrefix = '  '.repeat(indentLevel + 1) + 'fun: ';
+                const funcResult = this.processTermWithLocations(term.function, funcStartLine, uriString, visited, indentLevel + 1, true, funcPrefix);
                 // When adding indentation, the first line stays on the same line as "fun: "
                 const funcLines = funcResult.text.split('\n');
                 if (funcLines.length > 1) {
@@ -991,8 +1003,10 @@ export class TermViewerProvider {
                 output += ',';
 
                 output += '\n  arg: ';
-                const argResult = this.processTermWithLocations(term.argument, currentLine, uriString, visited, indentLevel + 1, true, 'arg: ');
-                currentLine += 1; // arg: line
+                const argStartLine = currentLine;
+                currentLine += 1; // arg: line - this is where the nested term starts
+                const argPrefix = '  '.repeat(indentLevel + 1) + 'arg: ';
+                const argResult = this.processTermWithLocations(term.argument, argStartLine, uriString, visited, indentLevel + 1, true, argPrefix);
                 // When adding indentation, the first line stays on the same line as "arg: "
                 const argLines = argResult.text.split('\n');
                 if (argLines.length > 1) {
@@ -1009,14 +1023,17 @@ export class TermViewerProvider {
             case 'Delay':
                 output = `${this.getShortTermType(term.term_type)} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 currentLine += 1; // Account for the header line
 
                 output += '\n  term: ';
-                const delayTermResult = this.processTermWithLocations(term.term, currentLine, uriString, visited, indentLevel + 1, true, 'term: ');
-                currentLine += 1; // term: line
+                const delayStartLine = currentLine;
+                currentLine += 1; // term: line - this is where the nested term starts
+                const delayPrefix = '  '.repeat(indentLevel + 1) + 'term: ';
+                const delayTermResult = this.processTermWithLocations(term.term, delayStartLine, uriString, visited, indentLevel + 1, true, delayPrefix);
                 // When adding indentation, the first line stays on the same line as "term: "
                 const delayLines = delayTermResult.text.split('\n');
                 if (delayLines.length > 1) {
@@ -1033,15 +1050,17 @@ export class TermViewerProvider {
             case 'Lambda':
                 output = `${this.getShortTermType(term.term_type)} ${term.parameterName} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
-                
                 currentLine += 1; // Lambda line
 
                 output += '\n  body: ';
-                const bodyResult = this.processTermWithLocations(term.body, currentLine, uriString, visited, indentLevel + 1, true, 'body: ');
-                currentLine += 1; // body: line
+                const bodyStartLine = currentLine;
+                currentLine += 1; // body: line - this is where the nested term starts
+                const bodyPrefix = '  '.repeat(indentLevel + 1) + 'body: ';
+                const bodyResult = this.processTermWithLocations(term.body, bodyStartLine, uriString, visited, indentLevel + 1, true, bodyPrefix);
                 // When adding indentation, the first line stays on the same line as "body: "
                 const bodyLines = bodyResult.text.split('\n');
                 if (bodyLines.length > 1) {
@@ -1058,14 +1077,17 @@ export class TermViewerProvider {
             case 'Force':
                 output = `${this.getShortTermType(term.term_type)} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 currentLine += 1; // Account for the header line
 
                 output += '\n  term: ';
-                const forceTermResult = this.processTermWithLocations(term.term, currentLine, uriString, visited, indentLevel + 1, true, 'term: ');
-                currentLine += 1; // term: line
+                const forceStartLine = currentLine;
+                currentLine += 1; // term: line - this is where the nested term starts
+                const forcePrefix = '  '.repeat(indentLevel + 1) + 'term: ';
+                const forceTermResult = this.processTermWithLocations(term.term, forceStartLine, uriString, visited, indentLevel + 1, true, forcePrefix);
                 // When adding indentation, the first line stays on the same line as "term: "
                 const forceLines = forceTermResult.text.split('\n');
                 if (forceLines.length > 1) {
@@ -1076,6 +1098,7 @@ export class TermViewerProvider {
                 }
                 currentLine = forceTermResult.endLine;
                 output += '\n}';
+                currentLine += 1; // closing } line
                 break;
 
             case 'Constant':
@@ -1086,7 +1109,8 @@ export class TermViewerProvider {
                     // Use inline format for simple types
                     output = `${this.getShortTermType(term.term_type)} ${constantData.type}: ${this.formatConstantValue(constantData.value)}`;
                     if (shouldCreateHints) {
-                        const prefixLength = prefix.length + indentLevel * 2;
+                        // For root terms use indentLevel, for nested terms use prefix length
+                        const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                         this.createConstantHints(uriString, currentLine, term.term_type, term.id, constantData.type, prefixLength, output);
                     }
                     currentLine += 1;
@@ -1096,7 +1120,8 @@ export class TermViewerProvider {
                         // Use structured rendering for ProtoList and ProtoPair
                         const firstLineOutput = `${this.getShortTermType(term.term_type)} ${constantData.type} {`;
                         if (shouldCreateHints) {
-                            const prefixLength = prefix.length + indentLevel * 2;
+                            // For root terms use indentLevel, for nested terms use prefix length
+                        const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                             this.createConstantHints(uriString, currentLine, term.term_type, term.id, constantData.type, prefixLength, firstLineOutput);
                         }
                         
@@ -1107,7 +1132,8 @@ export class TermViewerProvider {
                         // Use standard JSON format for other complex types
                         const firstLineOutput = `${this.getShortTermType(term.term_type)} ${constantData.type} {`;
                         if (shouldCreateHints) {
-                            const prefixLength = prefix.length + indentLevel * 2;
+                            // For root terms use indentLevel, for nested terms use prefix length
+                        const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                             this.createConstantHints(uriString, currentLine, term.term_type, term.id, constantData.type, prefixLength, firstLineOutput);
                         }
                         
@@ -1140,7 +1166,8 @@ export class TermViewerProvider {
             case 'Error':
                 output = `${this.getShortTermType(term.term_type)}`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 currentLine += 1;
@@ -1149,7 +1176,8 @@ export class TermViewerProvider {
             case 'Builtin':
                 output = `${this.getShortTermType(term.term_type)} ${term.fun}`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createBuiltinHints(uriString, currentLine, term.term_type, term.id, term.fun, prefixLength);
                 }
                 currentLine += 1;
@@ -1158,7 +1186,8 @@ export class TermViewerProvider {
             case 'Constr':
                 output = `${this.getShortTermType(term.term_type)} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 const constrHeader = [
@@ -1171,22 +1200,23 @@ export class TermViewerProvider {
 
                 for (let i = 0; i < term.fields.length; i++) {
                     output += '\n    ';
-                    currentLine += 1;
-                    const fieldResult = this.processTermWithLocations(term.fields[i], currentLine, uriString, visited, indentLevel + 2, true, '');
+                    const fieldStartLine = currentLine;
+                    currentLine += 1; // field line - this is where the nested term starts
+                    const fieldPrefix = '  '.repeat(indentLevel + 2);
+                    const fieldResult = this.processTermWithLocations(term.fields[i], fieldStartLine, uriString, visited, indentLevel + 2, true, fieldPrefix);
                     // When adding indentation, the first line stays on the same line after the spaces
                     const fieldLines = fieldResult.text.split('\n');
                     if (fieldLines.length > 1) {
                         output += fieldLines[0];
                         output += fieldLines.slice(1).map(line => '\n    ' + line).join('');
-                        currentLine = fieldResult.endLine;
                     } else {
                         output += fieldResult.text;
                     }
+                    currentLine = fieldResult.endLine;
                     if (i < term.fields.length - 1) {
                         output += ',';
                     }
                 }
-                currentLine += 1;
                 output += '\n  ]';
                 currentLine += 1; // ] line
                 output += '\n}';
@@ -1196,14 +1226,17 @@ export class TermViewerProvider {
             case 'Case':
                 output = `${this.getShortTermType(term.term_type)} {`;
                 if (shouldCreateHints) {
-                    const prefixLength = prefix.length + indentLevel * 2;
+                    // For root terms use indentLevel, for nested terms use prefix length
+                    const prefixLength = prefix === '' ? indentLevel * 2 : prefix.length;
                     this.createTermHints(uriString, currentLine, term.term_type, term.id, prefixLength, output);
                 }
                 currentLine += 1; // Account for the header line
 
                 output += '\n  constr: ';
-                const constrResult = this.processTermWithLocations(term.constr, currentLine, uriString, visited, indentLevel + 1, true, 'constr: ');
-                currentLine += 1; // constr: line
+                const constrStartLine = currentLine;
+                currentLine += 1; // constr: line - this is where the nested term starts
+                const constrPrefix = '  '.repeat(indentLevel + 1) + 'constr: ';
+                const constrResult = this.processTermWithLocations(term.constr, constrStartLine, uriString, visited, indentLevel + 1, true, constrPrefix);
                 // When adding indentation, the first line stays on the same line as "constr: "
                 const constrLines = constrResult.text.split('\n');
                 if (constrLines.length > 1) {
@@ -1219,7 +1252,10 @@ export class TermViewerProvider {
                 currentLine += 1; // branches: [ line
                 for (let i = 0; i < term.branches.length; i++) {
                     output += '\n    ';
-                    const branchResult = this.processTermWithLocations(term.branches[i], currentLine, uriString, visited, indentLevel + 2, true, '');
+                    const branchStartLine = currentLine;
+                    currentLine += 1; // branch line - this is where the nested term starts
+                    const branchPrefix = '  '.repeat(indentLevel + 2);
+                    const branchResult = this.processTermWithLocations(term.branches[i], branchStartLine, uriString, visited, indentLevel + 2, true, branchPrefix);
                     // When adding indentation, the first line stays on the same line after the spaces
                     const branchLines = branchResult.text.split('\n');
                     if (branchLines.length > 1) {
@@ -1297,19 +1333,6 @@ export class TermViewerProvider {
         vscode.commands.executeCommand(ExtensionActionEventNames.BREAKPOINT_LIST_UPDATED, breakpoints);
     }
 
-    private handleSelectionChange(event: vscode.TextEditorSelectionChangeEvent) {
-        if (!this._currentEditor || event.textEditor !== this._currentEditor) {
-            return;
-        }
-
-        const line = event.selections[0].active.line;
-        const termLocations = this.getCurrentTermLocations();
-        const termLocation = this.findTermAtLine(line, termLocations);
-
-        if (termLocation) {
-            this.highlightTerm(termLocation);
-        }
-    }
 
     private findTermAtLine(line: number, termLocations: TermLocation[]): TermLocation | undefined {
         // First, try to find terms that start exactly at this line
@@ -1413,6 +1436,7 @@ export class TermViewerProvider {
         );
     }
 
+
     public highlightDebuggerLine(termId: number): boolean {
         if (!this._currentEditor) {
             return false;
@@ -1462,11 +1486,12 @@ export class TermViewerProvider {
             return false;
         }
 
+        // Select only the first line of the term using regular text selection
         const selection = new vscode.Selection(
             termLocation.startLine,
             0,
-            termLocation.endLine,
-            this._currentEditor.document.lineAt(termLocation.endLine).text.length
+            termLocation.startLine,
+            this._currentEditor.document.lineAt(termLocation.startLine).text.length
         );
 
         this._currentEditor.selection = selection;
@@ -1475,7 +1500,6 @@ export class TermViewerProvider {
             vscode.TextEditorRevealType.InCenter
         );
 
-        this.highlightTerm(termLocation);
         return true;
     }
 

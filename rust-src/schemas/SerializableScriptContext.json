@@ -1,0 +1,2770 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SerializableScriptContext",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/SerializableScriptPurpose"
+        },
+        "script_context_version": {
+          "type": "string",
+          "const": "V1V2"
+        },
+        "tx_info": {
+          "$ref": "#/$defs/SerializableTxInfo"
+        }
+      },
+      "required": [
+        "script_context_version",
+        "tx_info",
+        "purpose"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/SerializableScriptInfo"
+        },
+        "redeemer": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        },
+        "script_context_version": {
+          "type": "string",
+          "const": "V3"
+        },
+        "tx_info": {
+          "$ref": "#/$defs/SerializableTxInfo"
+        }
+      },
+      "required": [
+        "script_context_version",
+        "tx_info",
+        "redeemer",
+        "purpose"
+      ]
+    }
+  ],
+  "$defs": {
+    "SerializableAnchor": {
+      "type": "object",
+      "properties": {
+        "data_hash": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "data_hash"
+      ]
+    },
+    "SerializableAsset": {
+      "type": "object",
+      "properties": {
+        "policy_id": {
+          "type": "string"
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableToken"
+          }
+        }
+      },
+      "required": [
+        "policy_id",
+        "tokens"
+      ]
+    },
+    "SerializableCardanoValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Coin"
+            }
+          },
+          "required": [
+            "value_type",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "assets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableAsset"
+              }
+            },
+            "coin": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "value_type": {
+              "type": "string",
+              "const": "Multiasset"
+            }
+          },
+          "required": [
+            "value_type",
+            "coin",
+            "assets"
+          ]
+        }
+      ]
+    },
+    "SerializableCertificate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeRegistration"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeDeregistration"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeDelegation"
+            },
+            "pool_keyhash": {
+              "type": "string"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "pool_keyhash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "PoolRegistration"
+            },
+            "pool_params": {
+              "$ref": "#/$defs/SerializablePoolParams"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "pool_params"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "PoolRetirement"
+            },
+            "epoch": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "pool_keyhash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "pool_keyhash",
+            "epoch"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "Reg"
+            },
+            "deposit": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "deposit"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "UnReg"
+            },
+            "refund": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "refund"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "VoteDeleg"
+            },
+            "drep": {
+              "$ref": "#/$defs/SerializableDRep"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "drep"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeVoteDeleg"
+            },
+            "drep": {
+              "$ref": "#/$defs/SerializableDRep"
+            },
+            "pool_keyhash": {
+              "type": "string"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "pool_keyhash",
+            "drep"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeRegDeleg"
+            },
+            "deposit": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "pool_keyhash": {
+              "type": "string"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "pool_keyhash",
+            "deposit"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "VoteRegDeleg"
+            },
+            "deposit": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "drep": {
+              "$ref": "#/$defs/SerializableDRep"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "drep",
+            "deposit"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "StakeVoteRegDeleg"
+            },
+            "deposit": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "drep": {
+              "$ref": "#/$defs/SerializableDRep"
+            },
+            "pool_keyhash": {
+              "type": "string"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "stake_credential",
+            "pool_keyhash",
+            "drep",
+            "deposit"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "AuthCommitteeHot"
+            },
+            "committee_cold_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            },
+            "committee_hot_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "committee_cold_credential",
+            "committee_hot_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "anchor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableAnchor"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificate_type": {
+              "type": "string",
+              "const": "ResignCommitteeCold"
+            },
+            "committee_cold_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "committee_cold_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "anchor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableAnchor"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificate_type": {
+              "type": "string",
+              "const": "RegDRepCert"
+            },
+            "deposit": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "drep_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "drep_credential",
+            "deposit"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate_type": {
+              "type": "string",
+              "const": "UnRegDRepCert"
+            },
+            "drep_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            },
+            "refund": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "certificate_type",
+            "drep_credential",
+            "refund"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "anchor": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableAnchor"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "certificate_type": {
+              "type": "string",
+              "const": "UpdateDRepCert"
+            },
+            "drep_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "certificate_type",
+            "drep_credential"
+          ]
+        }
+      ]
+    },
+    "SerializableConstitution": {
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "$ref": "#/$defs/SerializableAnchor"
+        },
+        "guardrail_script": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "anchor"
+      ]
+    },
+    "SerializableCostModels": {
+      "type": "object",
+      "properties": {
+        "plutus_v1": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "plutus_v2": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "plutus_v3": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "SerializableDRep": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "drep_type": {
+              "type": "string",
+              "const": "Key"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "drep_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "drep_type": {
+              "type": "string",
+              "const": "Script"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "drep_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "drep_type": {
+              "type": "string",
+              "const": "Abstain"
+            }
+          },
+          "required": [
+            "drep_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "drep_type": {
+              "type": "string",
+              "const": "NoConfidence"
+            }
+          },
+          "required": [
+            "drep_type"
+          ]
+        }
+      ]
+    },
+    "SerializableDRepVotingThresholds": {
+      "type": "object",
+      "properties": {
+        "committee_no_confidence": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "committee_normal": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "hard_fork_initiation": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "motion_no_confidence": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "pp_economic_group": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "pp_governance_group": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "pp_network_group": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "pp_technical_group": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "treasury_withdrawal": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "update_constitution": {
+          "$ref": "#/$defs/SerializableRational"
+        }
+      },
+      "required": [
+        "motion_no_confidence",
+        "committee_normal",
+        "committee_no_confidence",
+        "update_constitution",
+        "hard_fork_initiation",
+        "pp_network_group",
+        "pp_economic_group",
+        "pp_technical_group",
+        "pp_governance_group",
+        "treasury_withdrawal"
+      ]
+    },
+    "SerializableDatumOption": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "datum_type": {
+              "type": "string",
+              "const": "Hash"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "datum_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "datum_type": {
+              "type": "string",
+              "const": "Data"
+            }
+          },
+          "required": [
+            "datum_type",
+            "data"
+          ]
+        }
+      ]
+    },
+    "SerializableExUnitPrices": {
+      "type": "object",
+      "properties": {
+        "mem_price": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "step_price": {
+          "$ref": "#/$defs/SerializableRational"
+        }
+      },
+      "required": [
+        "mem_price",
+        "step_price"
+      ]
+    },
+    "SerializableExUnits": {
+      "type": "object",
+      "properties": {
+        "mem": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "steps": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "mem",
+        "steps"
+      ]
+    },
+    "SerializableGovAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "ParameterChange"
+            },
+            "gov_action_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableGovActionId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "policy_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "protocol_params_update": {
+              "$ref": "#/$defs/SerializableProtocolParamsUpdate"
+            }
+          },
+          "required": [
+            "action_type",
+            "protocol_params_update"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "HardForkInitiation"
+            },
+            "gov_action_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableGovActionId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "protocol_version": {
+              "$ref": "#/$defs/SerializableProtocolVersion"
+            }
+          },
+          "required": [
+            "action_type",
+            "protocol_version"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "TreasuryWithdrawals"
+            },
+            "policy_hash": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "withdrawals": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            }
+          },
+          "required": [
+            "action_type",
+            "withdrawals"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "NoConfidence"
+            },
+            "gov_action_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableGovActionId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "action_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "UpdateCommittee"
+            },
+            "gov_action_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableGovActionId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "members_to_add": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            },
+            "members_to_remove": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableStakeCredential"
+              }
+            },
+            "quorum_threshold": {
+              "$ref": "#/$defs/SerializableRational"
+            }
+          },
+          "required": [
+            "action_type",
+            "members_to_remove",
+            "members_to_add",
+            "quorum_threshold"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "NewConstitution"
+            },
+            "constitution": {
+              "$ref": "#/$defs/SerializableConstitution"
+            },
+            "gov_action_id": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableGovActionId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "action_type",
+            "constitution"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "const": "Information"
+            }
+          },
+          "required": [
+            "action_type"
+          ]
+        }
+      ]
+    },
+    "SerializableGovActionId": {
+      "type": "object",
+      "properties": {
+        "action_index": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "transaction_id",
+        "action_index"
+      ]
+    },
+    "SerializableKeyValuePair": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        },
+        "value": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ]
+    },
+    "SerializableMintValue": {
+      "type": "object",
+      "properties": {
+        "mint_value": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableAsset"
+          }
+        }
+      },
+      "required": [
+        "mint_value"
+      ]
+    },
+    "SerializablePlutusData": {
+      "description": "Serializable version of PlutusData that can be converted to/from JSON",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "any_constructor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            },
+            "tag": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "type": {
+              "type": "string",
+              "const": "Constr"
+            }
+          },
+          "required": [
+            "type",
+            "tag",
+            "fields"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "key_value_pairs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializableKeyValuePair"
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "Map"
+            }
+          },
+          "required": [
+            "type",
+            "key_value_pairs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "BigInt"
+            }
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Int": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "Int"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "BigUInt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "BigUInt"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "BigNInt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "BigNInt"
+              ]
+            }
+          ],
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "BoundedBytes"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Array"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "values"
+          ]
+        }
+      ]
+    },
+    "SerializablePoolMetadata": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "hash"
+      ]
+    },
+    "SerializablePoolParams": {
+      "type": "object",
+      "properties": {
+        "cost": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "margin": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "pledge": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "pool_metadata": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePoolMetadata"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pool_owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableRelay"
+          }
+        },
+        "reward_account": {
+          "type": "string"
+        },
+        "vrf_keyhash": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operator",
+        "vrf_keyhash",
+        "pledge",
+        "cost",
+        "margin",
+        "reward_account",
+        "pool_owners",
+        "relays"
+      ]
+    },
+    "SerializablePoolVotingThresholds": {
+      "type": "object",
+      "properties": {
+        "committee_no_confidence": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "committee_normal": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "hard_fork_initiation": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "motion_no_confidence": {
+          "$ref": "#/$defs/SerializableRational"
+        },
+        "security_voting_threshold": {
+          "$ref": "#/$defs/SerializableRational"
+        }
+      },
+      "required": [
+        "motion_no_confidence",
+        "committee_normal",
+        "committee_no_confidence",
+        "hard_fork_initiation",
+        "security_voting_threshold"
+      ]
+    },
+    "SerializableProposalProcedure": {
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "$ref": "#/$defs/SerializableAnchor"
+        },
+        "deposit": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "gov_action": {
+          "$ref": "#/$defs/SerializableGovAction"
+        },
+        "reward_account": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deposit",
+        "reward_account",
+        "gov_action",
+        "anchor"
+      ]
+    },
+    "SerializableProtocolParamsUpdate": {
+      "type": "object",
+      "properties": {
+        "ada_per_utxo_byte": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "collateral_percentage": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "committee_term_limit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "cost_models_for_script_languages": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableCostModels"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "desired_number_of_stake_pools": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "drep_deposit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "drep_inactivity_period": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "drep_voting_thresholds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableDRepVotingThresholds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution_costs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableExUnitPrices"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expansion_rate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableRational"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "governance_action_deposit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "governance_action_validity_period": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "key_deposit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "max_block_body_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "max_block_ex_units": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableExUnits"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_block_header_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "max_collateral_inputs": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "max_transaction_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "max_tx_ex_units": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableExUnits"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_value_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "maximum_epoch": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "min_committee_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "min_pool_cost": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "minfee_a": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "minfee_b": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "minfee_refscript_cost_per_byte": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableRational"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pool_deposit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "pool_pledge_influence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableRational"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pool_voting_thresholds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePoolVotingThresholds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "treasury_growth_rate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableRational"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "SerializableProtocolVersion": {
+      "type": "object",
+      "properties": {
+        "major": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "minor": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "major",
+        "minor"
+      ]
+    },
+    "SerializableRational": {
+      "type": "object",
+      "properties": {
+        "denominator": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "numerator": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator"
+      ]
+    },
+    "SerializableRedeemer": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/SerializablePlutusData"
+        },
+        "ex_units": {
+          "$ref": "#/$defs/SerializableExUnits"
+        },
+        "index": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "tag": {
+          "$ref": "#/$defs/SerializableRedeemerTag"
+        }
+      },
+      "required": [
+        "tag",
+        "index",
+        "data",
+        "ex_units"
+      ]
+    },
+    "SerializableRedeemerTag": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Spend"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Mint"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Cert"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Reward"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Vote"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "Propose"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        }
+      ]
+    },
+    "SerializableRelay": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ipv4": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "ipv6": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "port": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0
+            },
+            "relay_type": {
+              "type": "string",
+              "const": "SingleHostAddr"
+            }
+          },
+          "required": [
+            "relay_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hostname": {
+              "type": "string"
+            },
+            "port": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0
+            },
+            "relay_type": {
+              "type": "string",
+              "const": "SingleHostName"
+            }
+          },
+          "required": [
+            "relay_type",
+            "hostname"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hostname": {
+              "type": "string"
+            },
+            "relay_type": {
+              "type": "string",
+              "const": "MultiHostName"
+            }
+          },
+          "required": [
+            "relay_type",
+            "hostname"
+          ]
+        }
+      ]
+    },
+    "SerializableScriptInfo": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "policy_id": {
+              "type": "string"
+            },
+            "script_info_type": {
+              "type": "string",
+              "const": "Minting"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "policy_id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "datum": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializablePlutusData"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "script_info_type": {
+              "type": "string",
+              "const": "Spending"
+            },
+            "utxo_ref": {
+              "$ref": "#/$defs/SerializableTransactionInput"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "utxo_ref"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "script_info_type": {
+              "type": "string",
+              "const": "Rewarding"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "stake_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate": {
+              "$ref": "#/$defs/SerializableCertificate"
+            },
+            "index": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "script_info_type": {
+              "type": "string",
+              "const": "Certifying"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "index",
+            "certificate"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "script_info_type": {
+              "type": "string",
+              "const": "Voting"
+            },
+            "voter": {
+              "$ref": "#/$defs/SerializableVoter"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "voter"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "proposal": {
+              "$ref": "#/$defs/SerializableProposalProcedure"
+            },
+            "script_info_type": {
+              "type": "string",
+              "const": "Proposing"
+            }
+          },
+          "required": [
+            "script_info_type",
+            "index",
+            "proposal"
+          ]
+        }
+      ]
+    },
+    "SerializableScriptPurpose": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "policy_id": {
+              "type": "string"
+            },
+            "purpose_type": {
+              "type": "string",
+              "const": "Minting"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "policy_id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "purpose_type": {
+              "type": "string",
+              "const": "Spending"
+            },
+            "utxo_ref": {
+              "$ref": "#/$defs/SerializableTransactionInput"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "utxo_ref"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "purpose_type": {
+              "type": "string",
+              "const": "Rewarding"
+            },
+            "stake_credential": {
+              "$ref": "#/$defs/SerializableStakeCredential"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "stake_credential"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "certificate": {
+              "$ref": "#/$defs/SerializableCertificate"
+            },
+            "index": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "purpose_type": {
+              "type": "string",
+              "const": "Certifying"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "index",
+            "certificate"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "purpose_type": {
+              "type": "string",
+              "const": "Voting"
+            },
+            "voter": {
+              "$ref": "#/$defs/SerializableVoter"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "voter"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "format": "uint",
+              "minimum": 0
+            },
+            "proposal": {
+              "$ref": "#/$defs/SerializableProposalProcedure"
+            },
+            "purpose_type": {
+              "type": "string",
+              "const": "Proposing"
+            }
+          },
+          "required": [
+            "purpose_type",
+            "index",
+            "proposal"
+          ]
+        }
+      ]
+    },
+    "SerializableScriptRef": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "script_type": {
+              "type": "string",
+              "const": "NativeScript"
+            }
+          },
+          "required": [
+            "script_type",
+            "script"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "script_type": {
+              "type": "string",
+              "const": "PlutusV1Script"
+            }
+          },
+          "required": [
+            "script_type",
+            "script"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "script_type": {
+              "type": "string",
+              "const": "PlutusV2Script"
+            }
+          },
+          "required": [
+            "script_type",
+            "script"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "script_type": {
+              "type": "string",
+              "const": "PlutusV3Script"
+            }
+          },
+          "required": [
+            "script_type",
+            "script"
+          ]
+        }
+      ]
+    },
+    "SerializableStakeCredential": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "credential_type": {
+              "type": "string",
+              "const": "KeyHash"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "credential_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "credential_type": {
+              "type": "string",
+              "const": "ScriptHash"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "credential_type",
+            "hash"
+          ]
+        }
+      ]
+    },
+    "SerializableTimeRange": {
+      "type": "object",
+      "properties": {
+        "lower_bound": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "upper_bound": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        }
+      }
+    },
+    "SerializableToken": {
+      "type": "object",
+      "properties": {
+        "asset_name": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "required": [
+        "asset_name",
+        "quantity"
+      ]
+    },
+    "SerializableTransactionInput": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "transaction_id",
+        "index"
+      ]
+    },
+    "SerializableTransactionOutput": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "output_format": {
+              "type": "string",
+              "const": "Legacy"
+            },
+            "value": {
+              "$ref": "#/$defs/SerializableCardanoValue"
+            }
+          },
+          "required": [
+            "output_format",
+            "address",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "datum_option": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableDatumOption"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_format": {
+              "type": "string",
+              "const": "PostAlonzo"
+            },
+            "script_ref": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SerializableScriptRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "value": {
+              "$ref": "#/$defs/SerializableCardanoValue"
+            }
+          },
+          "required": [
+            "output_format",
+            "address",
+            "value"
+          ]
+        }
+      ]
+    },
+    "SerializableTxInInfo": {
+      "type": "object",
+      "properties": {
+        "out_ref": {
+          "$ref": "#/$defs/SerializableTransactionInput"
+        },
+        "resolved": {
+          "$ref": "#/$defs/SerializableTransactionOutput"
+        }
+      },
+      "required": [
+        "out_ref",
+        "resolved"
+      ]
+    },
+    "SerializableTxInfo": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "V1": {
+              "$ref": "#/$defs/SerializableTxInfoV1"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "V1"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "V2": {
+              "$ref": "#/$defs/SerializableTxInfoV2"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "V2"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "V3": {
+              "$ref": "#/$defs/SerializableTxInfoV3"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "V3"
+          ]
+        }
+      ]
+    },
+    "SerializableTxInfoV1": {
+      "type": "object",
+      "properties": {
+        "certificates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableCertificate"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            ]
+          }
+        },
+        "fee": {
+          "$ref": "#/$defs/SerializableCardanoValue"
+        },
+        "id": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTxInInfo"
+          }
+        },
+        "mint": {
+          "$ref": "#/$defs/SerializableMintValue"
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTransactionOutput"
+          }
+        },
+        "redeemers": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/SerializableScriptPurpose"
+              },
+              {
+                "$ref": "#/$defs/SerializableRedeemer"
+              }
+            ]
+          }
+        },
+        "signatories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "valid_range": {
+          "$ref": "#/$defs/SerializableTimeRange"
+        },
+        "withdrawals": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "inputs",
+        "outputs",
+        "fee",
+        "mint",
+        "certificates",
+        "withdrawals",
+        "valid_range",
+        "signatories",
+        "data",
+        "redeemers",
+        "id"
+      ]
+    },
+    "SerializableTxInfoV2": {
+      "type": "object",
+      "properties": {
+        "certificates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableCertificate"
+          }
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            ]
+          }
+        },
+        "fee": {
+          "$ref": "#/$defs/SerializableCardanoValue"
+        },
+        "id": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTxInInfo"
+          }
+        },
+        "mint": {
+          "$ref": "#/$defs/SerializableMintValue"
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTransactionOutput"
+          }
+        },
+        "redeemers": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/SerializableScriptPurpose"
+              },
+              {
+                "$ref": "#/$defs/SerializableRedeemer"
+              }
+            ]
+          }
+        },
+        "reference_inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTxInInfo"
+          }
+        },
+        "signatories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "valid_range": {
+          "$ref": "#/$defs/SerializableTimeRange"
+        },
+        "withdrawals": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "inputs",
+        "reference_inputs",
+        "outputs",
+        "fee",
+        "mint",
+        "certificates",
+        "withdrawals",
+        "valid_range",
+        "signatories",
+        "data",
+        "redeemers",
+        "id"
+      ]
+    },
+    "SerializableTxInfoV3": {
+      "type": "object",
+      "properties": {
+        "certificates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableCertificate"
+          }
+        },
+        "current_treasury_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/SerializablePlutusData"
+              }
+            ]
+          }
+        },
+        "fee": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTxInInfo"
+          }
+        },
+        "mint": {
+          "$ref": "#/$defs/SerializableMintValue"
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTransactionOutput"
+          }
+        },
+        "proposal_procedures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableProposalProcedure"
+          }
+        },
+        "redeemers": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/SerializableScriptPurpose"
+              },
+              {
+                "$ref": "#/$defs/SerializableRedeemer"
+              }
+            ]
+          }
+        },
+        "reference_inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializableTxInInfo"
+          }
+        },
+        "signatories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "treasury_donation": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "valid_range": {
+          "$ref": "#/$defs/SerializableTimeRange"
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/SerializableVoter"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "$ref": "#/$defs/SerializableGovActionId"
+                    },
+                    {
+                      "$ref": "#/$defs/SerializableVotingProcedure"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "withdrawals": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "inputs",
+        "reference_inputs",
+        "outputs",
+        "fee",
+        "mint",
+        "certificates",
+        "withdrawals",
+        "valid_range",
+        "signatories",
+        "data",
+        "redeemers",
+        "id",
+        "votes",
+        "proposal_procedures"
+      ]
+    },
+    "SerializableVote": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "vote_type": {
+              "type": "string",
+              "const": "No"
+            }
+          },
+          "required": [
+            "vote_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "vote_type": {
+              "type": "string",
+              "const": "Yes"
+            }
+          },
+          "required": [
+            "vote_type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "vote_type": {
+              "type": "string",
+              "const": "Abstain"
+            }
+          },
+          "required": [
+            "vote_type"
+          ]
+        }
+      ]
+    },
+    "SerializableVoter": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string"
+            },
+            "voter_type": {
+              "type": "string",
+              "const": "ConstitutionalCommitteeScript"
+            }
+          },
+          "required": [
+            "voter_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string"
+            },
+            "voter_type": {
+              "type": "string",
+              "const": "ConstitutionalCommitteeKey"
+            }
+          },
+          "required": [
+            "voter_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string"
+            },
+            "voter_type": {
+              "type": "string",
+              "const": "DRepScript"
+            }
+          },
+          "required": [
+            "voter_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string"
+            },
+            "voter_type": {
+              "type": "string",
+              "const": "DRepKey"
+            }
+          },
+          "required": [
+            "voter_type",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string"
+            },
+            "voter_type": {
+              "type": "string",
+              "const": "StakePoolKey"
+            }
+          },
+          "required": [
+            "voter_type",
+            "hash"
+          ]
+        }
+      ]
+    },
+    "SerializableVotingProcedure": {
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableAnchor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vote": {
+          "$ref": "#/$defs/SerializableVote"
+        }
+      },
+      "required": [
+        "vote"
+      ]
+    }
+  }
+}

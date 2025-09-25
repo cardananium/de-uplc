@@ -204,7 +204,7 @@ type MachineContext =
   | {
       context_type: 'FrameAwaitFunTerm';
       env: Env;
-      term: Term;
+      term: EitherTermOrId;
     }
   | {
       context_type: 'FrameAwaitFunValue';
@@ -218,16 +218,26 @@ type MachineContext =
       env: Env;
       tag: number;
       term_id: number;
-      terms: Term[];
+      terms: EitherTermOrId[];
       values: Value[];
     }
   | {
       context_type: 'FrameCases';
       env: Env;
-      terms: Term[];
+      terms: EitherTermOrId[];
     }
   | {
       context_type: 'NoFrame';
+    };
+
+type EitherTermOrId =
+  | {
+      term: Term;
+      type: 'Term';
+    }
+  | {
+      id: number;
+      type: 'Id';
     };
 
 interface BuiltinRuntime {
@@ -247,13 +257,13 @@ type Value =
       value_type: 'Con';
     }
   | {
-      body: Term;
+      body: EitherTermOrId;
       env: Env;
       term_id: number;
       value_type: 'Delay';
     }
   | {
-      body: Term;
+      body: EitherTermOrId;
       env: Env;
       parameterName: string;
       term_id: number;
@@ -282,11 +292,11 @@ type MachineState =
       context: MachineContext;
       env: Env;
       machine_state_type: 'Compute';
-      term: Term;
+      term: EitherTermOrId;
     }
   | {
       machine_state_type: 'Done';
-      term: Term;
+      term: EitherTermOrId;
     };
 
 type ScriptContext =
@@ -878,6 +888,7 @@ export type { CostModels };
 export type { DRep };
 export type { DRepVotingThresholds };
 export type { DatumOption };
+export type { EitherTermOrId };
 export type { Env };
 export type { ExUnitPrices };
 export type { ExUnits };

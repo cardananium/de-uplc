@@ -2,15 +2,16 @@ import * as vscode from 'vscode';
 import { Breakpoint } from '../common';
 import { ExtensionActionEventNames, DebuggerControlEventNames } from './debugger-event-names';
 import { AnyUplcData } from '../uplc-models/any-uplc';
+import { Term } from '../debugger-types';
 
 export namespace EventEmitter {
     // Extension Action Events
-    export const selectRedeemer = (redeemer: string) => {
-        vscode.commands.executeCommand(ExtensionActionEventNames.SELECT_REDEEMER, redeemer);
+    export const selectRedeemer = async (redeemer: string) => {
+        await vscode.commands.executeCommand(ExtensionActionEventNames.SELECT_REDEEMER, redeemer);
     };
 
-    export const openNewScript = () => {
-        vscode.commands.executeCommand(ExtensionActionEventNames.OPEN_NEW_SCRIPT);
+    export const openNewTransaction = async (transactionPath: string) => {
+        await vscode.commands.executeCommand(ExtensionActionEventNames.OPEN_NEW_TRANSACTION, transactionPath);
     };
 
     export const errorOccurred = (error: Error) => {
@@ -36,6 +37,18 @@ export namespace EventEmitter {
 
     export const pauseDebugging = () => {
         vscode.commands.executeCommand(DebuggerControlEventNames.PAUSE_DEBUGGING);
+    };
+
+    export const debuggerCaughtBreakpoint = (termId: number) => {
+        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_BREAKPOINT, termId);
+    };
+
+    export const debuggerCaughtError = (error: string) => {
+        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_ERROR, error);
+    };
+
+    export const debuggerCaughtFinished = (term: Term) => {
+        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_FINISHED, term);
     };
 
     export const showScriptContext = () => {

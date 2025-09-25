@@ -3,6 +3,9 @@ export namespace DebuggerControlEventNames {
     export const START_DEBUGGING = "deuplc.startDebugging";
     export const STOP_DEBUGGING = "deuplc.stopDebugging";
     export const PAUSE_DEBUGGING = "deuplc.pauseDebugging";
+    export const DEBUGGER_CAUGHT_BREAKPOINT = "deuplc.debuggerCaughtBreakpoint";
+    export const DEBUGGER_CAUGHT_ERROR = "deuplc.debuggerCaughtError";
+    export const DEBUGGER_CAUGHT_FINISHED = "deuplc.debuggerCaughtFinished";
     export const RESUME_DEBUGGING = "deuplc.resumeDebugging";
     export const STEP_DEBUGGING = "deuplc.stepIntoDebugging";
     export const CONTINUE_DEBUGGING = "deuplc.continueDebugging";
@@ -13,7 +16,7 @@ export namespace DebuggerControlEventNames {
 
 export namespace ExtensionActionEventNames {
     export const SELECT_REDEEMER = "deuplc.selectRedeemer";
-    export const OPEN_NEW_SCRIPT = "deuplc.openNewScript";
+    export const OPEN_NEW_TRANSACTION = "deuplc.openNewTransaction";
     export const ERROR_OCCURRED = "deuplc.errorOccurred";
 
     export const BREAKPOINT_LIST_UPDATED = "deuplc.breakpointListUpdated";
