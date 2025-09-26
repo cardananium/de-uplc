@@ -3,7 +3,7 @@ use uplc::{
 };
 use serde::{Serialize, Deserialize};
 use schemars::JsonSchema;
-use std::{sync::Arc, collections::HashSet};
+use std::{rc::Rc, collections::HashSet};
 use crate::serializer::{SerializableConstant, EitherTermOrId, term_to_either_term_or_id};
 
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
@@ -93,11 +93,11 @@ impl SerializableValue {
 }
 
 impl SerializableEnv {
-    pub fn from_uplc_env(env: &Arc<Vec<uplc::machine::value::Value>>) -> Self {
+    pub fn from_uplc_env(env: &Rc<Vec<uplc::machine::value::Value>>) -> Self {
         Self::from_uplc_env_with_ids(env, &HashSet::new())
     }
 
-    pub fn from_uplc_env_with_ids(env: &Arc<Vec<uplc::machine::value::Value>>, term_ids: &HashSet<i32>) -> Self {
+    pub fn from_uplc_env_with_ids(env: &Rc<Vec<uplc::machine::value::Value>>, term_ids: &HashSet<i32>) -> Self {
         SerializableEnv {
             values: env.iter().map(|value| SerializableValue::from_uplc_value_with_ids(value, term_ids)).collect(),
         }
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_con_value_serialization() {
-        let constant = Arc::new(Constant::Integer(42.into()));
+        let constant = Rc::new(Constant::Integer(42.into()));
         let value = Value::Con(constant);
         let json = value_to_json(&value).unwrap();
         println!("Con Value JSON: {}", json);
@@ -155,8 +155,8 @@ mod tests {
 
     #[test]
     fn test_constr_value_serialization() {
-        let field1 = Value::Con(Arc::new(Constant::Integer(1.into())));
-        let field2 = Value::Con(Arc::new(Constant::String("test".to_string())));
+        let field1 = Value::Con(Rc::new(Constant::Integer(1.into())));
+        let field2 = Value::Con(Rc::new(Constant::String("test".to_string())));
         let value = Value::Constr {
             tag: 5,
             fields: vec![field1, field2],
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_empty_env() {
-        let env: Arc<Vec<Value>> = Arc::new(vec![]);
+        let env: Rc<Vec<Value>> = Rc::new(vec![]);
         let serializable_env = SerializableEnv::from_uplc_env(&env);
         let json = serde_json::to_string(&serializable_env).unwrap();
         println!("Empty Env JSON: {}", json);
@@ -219,9 +219,9 @@ mod tests {
 
     #[test]
     fn test_env_with_values() {
-        let val1 = Value::Con(Arc::new(Constant::Integer(1.into())));
-        let val2 = Value::Con(Arc::new(Constant::Bool(true)));
-        let env: Arc<Vec<Value>> = Arc::new(vec![val1, val2]);
+        let val1 = Value::Con(Rc::new(Constant::Integer(1.into())));
+        let val2 = Value::Con(Rc::new(Constant::Bool(true)));
+        let env: Rc<Vec<Value>> = Rc::new(vec![val1, val2]);
         let serializable_env = SerializableEnv::from_uplc_env(&env);
         let json = serde_json::to_string(&serializable_env).unwrap();
         println!("Env with Values JSON: {}", json);
