@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-uplc = { path = "../../aiken-de-uplc/aiken/crates/uplc/" }
+uplc = { git = "https://github.com/cardananium/aiken/", branch = "de-uplc" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 hex = "0.4"

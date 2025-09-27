@@ -2218,6 +2218,7 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 [[package]]
 name = "uplc"
 version = "1.1.17"
+source = "git+https://github.com/cardananium/aiken/?branch=de-uplc#7a2c898ea78ef442904b6714ee278e16ad2420b2"
 dependencies = [
  "bitvec",
  "blst",

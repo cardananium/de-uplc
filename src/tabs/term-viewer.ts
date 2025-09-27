@@ -188,6 +188,7 @@ export class TermViewerProvider {
     private readonly _termLocations = new Map<string, TermLocation[]>(); // URI -> term locations map
     private readonly _termHints = new Map<string, TermHintInfo[]>(); // URI -> term hints map
     private _currentEditor: vscode.TextEditor | undefined;
+    private _currentDebuggerTermId: number | undefined;
     private _decorationTypes: {
         breakpointPossible: vscode.TextEditorDecorationType;
         breakpointActive: vscode.TextEditorDecorationType;
@@ -300,6 +301,7 @@ export class TermViewerProvider {
                 if (editor && editor.document.uri.scheme === TermViewerProvider.scheme) {
                     provider.setCurrentEditor(editor);
                     provider.updateAllDecorations();
+                    provider.restoreDebuggerHighlight();
                 }
             })
         );
@@ -458,6 +460,7 @@ export class TermViewerProvider {
         vscode.commands.executeCommand('setContext', 'debuggersAvailable', true);
 
         this.updateAllDecorations();
+        this.restoreDebuggerHighlight();
         
         // Notify that breakpoints have been updated
         this.notifyBreakpointUpdate();
@@ -1439,8 +1442,11 @@ export class TermViewerProvider {
 
     public highlightDebuggerLine(termId: number): boolean {
         if (!this._currentEditor) {
+            this._currentDebuggerTermId = termId;
             return false;
         }
+
+        this._currentDebuggerTermId = termId;
 
         this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, []);
 
@@ -1470,8 +1476,27 @@ export class TermViewerProvider {
     }
 
     public clearDebuggerHighlight(): void {
+        this._currentDebuggerTermId = undefined;
         if (this._currentEditor) {
             this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, []);
+        }
+    }
+
+    private restoreDebuggerHighlight(): void {
+        if (this._currentDebuggerTermId !== undefined && this._currentEditor) {
+            const termLocations = this.getCurrentTermLocations();
+            const termLocation = termLocations.find(loc => loc.termId === this._currentDebuggerTermId);
+            if (termLocation) {
+                const decoration: vscode.DecorationOptions = {
+                    range: new vscode.Range(
+                        termLocation.startLine,
+                        0,
+                        termLocation.startLine,
+                        Number.MAX_VALUE
+                    )
+                };
+                this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, [decoration]);
+            }
         }
     }
 
