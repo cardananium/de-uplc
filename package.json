@@ -299,7 +299,9 @@
         "deuplc.providers.offline.filePath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Path to JSON file containing offline UTXOs and protocol parameters. If empty, a default file in the workspace root is used."
+          "pattern": "^(?:[a-zA-Z]:\\\\|[\\\\/])?(?:[^<>:\"|?*\\\\\/\\r\\n]+[\\\\/])*[^<>:\"|?*\\\\\/\\r\\n]*\\.json$|^$",
+          "patternErrorMessage": "Must be a valid file path ending with .json extension",
+          "markdownDescription": "Path to JSON file containing offline UTXOs and protocol parameters."
         }
       }
     }
