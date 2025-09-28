@@ -66,6 +66,8 @@ export class AdditionalControlsViewProvider implements vscode.WebviewViewProvide
             const filePath = selection[0].fsPath;
             await EventEmitter.openNewTransaction(filePath);
             
+            vscode.window.showInformationMessage(`Transaction loaded: ${filePath.split('/').pop()}`);
+            
             // Inform the webview and reset loading state
             this._view?.webview.postMessage({
               command: "transactionSelected",
