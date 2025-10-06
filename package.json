@@ -293,7 +293,7 @@
         },
         "deuplc.providers.offline.enabled": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Enable offline data provider (file-based)."
         },
         "deuplc.providers.offline.filePath": {

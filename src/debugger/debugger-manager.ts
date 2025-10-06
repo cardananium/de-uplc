@@ -167,10 +167,20 @@ export class DebuggerManager {
                 if (requiredUtxos.length > 0) {
                     filledContext.utxos = await this.fetchUtxos(requiredUtxos, network);
                     console.log('Fetched UTXOs:', filledContext.utxos);
+                    
+                    // Check if all required UTXOs were fetched
+                    const fetchedUtxos = filledContext.utxos;
+                    const missingUtxos = requiredUtxos.filter(utxo =>
+                        !fetchedUtxos.find(u => u.txHash === utxo.txHash && u.outputIndex === utxo.outputIndex)
+                    );
+                    
+                    if (missingUtxos.length > 0) {
+                        throw new Error(`Failed to fetch ${missingUtxos.length} required UTXOs: ${missingUtxos.map(u => `${u.txHash}:${u.outputIndex}`).join(', ')}`);
+                    }
                 }
             } catch (error) {
-                console.warn('Failed to fetch required UTXOs:', error);
-                filledContext.utxos = [];
+                console.error('Failed to fetch required UTXOs:', error);
+                throw new Error(`Unable to fetch required UTXOs: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
 
@@ -178,8 +188,12 @@ export class DebuggerManager {
         if (!filledContext.protocolParams) {
             try {
                 filledContext.protocolParams = await this.fetchProtocolParameters(network);
+                if (!filledContext.protocolParams) {
+                    throw new Error('Protocol parameters are required but could not be fetched from any provider');
+                }
             } catch (error) {
-                console.warn('Failed to fetch protocol parameters:', error);
+                console.error('Failed to fetch protocol parameters:', error);
+                throw new Error(`Unable to fetch protocol parameters: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
 

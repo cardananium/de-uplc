@@ -42,7 +42,7 @@ function buildOfflineProvider(): DataProvider {
   const folder = getWorkspaceFolderFallback();
   const defaultPath = folder ? `${folder}/deuplc-offline.json` : 'deuplc-offline.json';
   const filePath = settings.offlinePath && settings.offlinePath.trim().length > 0 ? settings.offlinePath : defaultPath;
-  return new FileProvider({ filePath });
+  return new FileProvider({ filePath, enabled: settings.offlineEnabled });
 }
 
 export function registerDataProviders(context: vscode.ExtensionContext) {

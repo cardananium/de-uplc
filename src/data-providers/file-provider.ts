@@ -7,11 +7,12 @@ import { Network, ProtocolParameters, UtxoOutput, UtxoReference } from '../commo
 
 export interface FileProviderConfig {
   filePath: string;
+  enabled: boolean;
 }
 
 export interface DataFile {
   utxos: UtxoOutput[];
-  protocolParameters: ProtocolParameters;
+  protocolParams: ProtocolParameters;
 }
 
 /**
@@ -20,9 +21,11 @@ export interface DataFile {
  */
 export class FileProvider implements DataProvider {
   private readonly filePath: string;
+  private readonly enabled: boolean;
 
   constructor(config: FileProviderConfig) {
     this.filePath = config.filePath;
+    this.enabled = config.enabled;
   }
 
   /**
@@ -39,7 +42,7 @@ export class FileProvider implements DataProvider {
       if (!data.utxos || !Array.isArray(data.utxos)) {
         throw new Error('Invalid data file: missing or invalid utxos array');
       }
-      if (!data.protocolParameters || typeof data.protocolParameters !== 'object') {
+      if (!data.protocolParams || typeof data.protocolParams !== 'object') {
         throw new Error('Invalid data file: missing or invalid protocolParameters object');
       }
       
@@ -57,6 +60,10 @@ export class FileProvider implements DataProvider {
    * Reads from data file and filters by provided references
    */
   async getUtxoInfo(utxoRefs: UtxoReference[], network: Network): Promise<UtxoOutput[]> {
+    if (!this.enabled) {
+       throw new Error('FileProvider is disabled');
+    }
+
     const data = await this.readDataFile();
 
     // Filter UTXOs by provided references
@@ -74,14 +81,21 @@ export class FileProvider implements DataProvider {
    * Reads from data file
    */
   async getProtocolParameters(): Promise<ProtocolParameters> {
+    if (!this.enabled) {
+      throw new Error('FileProvider is disabled');
+    }
     const data = await this.readDataFile();
-    return data.protocolParameters;
+    return data.protocolParams;
   }
 
   /**
    * Get all UTXOs from file (utility method)
    */
   async getAllUtxos(): Promise<UtxoOutput[]> {
+    if (!this.enabled) {
+       throw new Error('FileProvider is disabled');
+    }
+
     const data = await this.readDataFile();
     return data.utxos;
   }
@@ -89,7 +103,7 @@ export class FileProvider implements DataProvider {
   /**
    * Save complete data to file (utility method)
    */
-  async saveData(utxos: UtxoOutput[], protocolParameters: ProtocolParameters): Promise<void> {
+  async saveData(utxos: UtxoOutput[], protocolParams: ProtocolParameters): Promise<void> {
     const fullPath = path.resolve(this.filePath);
     
     try {
@@ -98,7 +112,7 @@ export class FileProvider implements DataProvider {
       
       const data: DataFile = {
         utxos,
-        protocolParameters
+        protocolParams
       };
       
       const fileContent = JSON.stringify(data, null, 2);
@@ -113,7 +127,7 @@ export class FileProvider implements DataProvider {
    */
   async updateUtxos(utxos: UtxoOutput[]): Promise<void> {
     const data = await this.readDataFile();
-    await this.saveData(utxos, data.protocolParameters);
+    await this.saveData(utxos, data.protocolParams);
   }
 
   /**
