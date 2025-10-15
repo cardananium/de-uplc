@@ -8,10 +8,12 @@ import { AdditionalControlsViewProvider } from './sections/additional-controls-v
 import { EventBridge } from './events/event-bridge';
 import { DebuggerManager } from './debugger/debugger-manager';
 import { TabManager } from './tabs/tab-manager';
+import { getProviders, registerDataProviders } from './data-providers/providers';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('[DE-UPLC] Activating extension...');
 
+  registerDataProviders(context);
   const debuggerManager = new DebuggerManager();
   const tabManager = TabManager.register(context);
   const debuggerPanelViewProvider = DebuggerPanelViewProvider.register(context);
