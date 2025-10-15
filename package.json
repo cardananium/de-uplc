@@ -275,6 +275,33 @@
           "type": "boolean",
           "default": true,
           "description": "Enable inlay hints in the term viewer."
+        },
+        "deuplc.providers.koios.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional Koios API key. Leave empty if not required."
+        },
+        "deuplc.providers.timeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "HTTP timeout for data providers in milliseconds."
+        },
+        "deuplc.providers.retryAttempts": {
+          "type": "number",
+          "default": 3,
+          "description": "Number of retry attempts for transient provider errors."
+        },
+        "deuplc.providers.offline.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable offline data provider (file-based)."
+        },
+        "deuplc.providers.offline.filePath": {
+          "type": "string",
+          "default": "",
+          "pattern": "^(?:[a-zA-Z]:\\\\|[\\\\/])?(?:[^<>:\"|?*\\\\\/\\r\\n]+[\\\\/])*[^<>:\"|?*\\\\\/\\r\\n]*\\.json$|^$",
+          "patternErrorMessage": "Must be a valid file path ending with .json extension",
+          "markdownDescription": "Path to JSON file containing offline UTXOs and protocol parameters."
         }
       }
     }
@@ -291,7 +318,11 @@
     "test": "vscode-test",
     "generate-schemas": "cd rust-src && cargo run --bin generate_schemas",
     "generate-types": "node scripts/generate-types.js",
-    "generate-all": "npm run generate-schemas && npm run generate-types"
+    "generate-all": "npm run generate-schemas && npm run generate-types",
+    "build:extension": "./build-extension.sh",
+    "release": "./release-extension.sh",
+    "vsce:package": "vsce package",
+    "vsce:publish": "vsce publish"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.4",
