@@ -30,3 +30,6 @@ build/
 
 #rust
 rust-src/target/
+rust-src/pkg/
+
+temp/

@@ -3,4 +3,46 @@ name = "de-uplc"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+uplc = { git = "https://github.com/cardananium/aiken/", branch = "de-uplc" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+pallas-primitives = "0.32"
+pallas-codec = "0.32"
+pallas-traverse = "0.32"
+pallas-addresses = "0.32"
+pallas-crypto = "0.32"
+blst = "0.3"
+num-bigint = "0.4"
+schemars = "1.0.4"
+thiserror = "2.0.10"
+uuid = { version = "1.17", features = ["std" ,"serde", "js", "v4"] }
+getrandom = { version = "0.2.16", features = ["js"] }
+
+# Target-specific dependencies
+[target.'cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))'.dependencies]
+wasm-bindgen = { version = "0.2.100", features = ["serde-serialize"] }
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+
+[target.'cfg(not(all(target_arch = "wasm32", not(target_os = "emscripten"))))'.dependencies]
+noop_proc_macro = "0.3"
+serde_derive = "1.0"
+actix-web = "4.9"
+actix-cors = "0.7"
+tokio = { version = "1.0", features = ["full"] }
+env_logger = "0.11"
+tokio-util = "0.7"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4", "--enable-bulk-memory"]

@@ -27,6 +27,10 @@ export class TabManager {
         return await this.termViewer.openTermInNewTab(term);
     }
 
+    public clearBreakpoints() {
+        this.termViewer.clearBreakpoints();
+    }
+
     public async openUplcInNewTab(uplc: AnyUplcData, fileName?: string) {
         return await this.uplcViewer.show(uplc, fileName);
     }
@@ -35,8 +39,8 @@ export class TabManager {
         return await this.plainTextViewer.show(content, fileName);
     }
 
-    public focusOnTerm(term: Term) {
-        return this.termViewer.focusOnTerm(term.id);
+    public focusOnTerm(termId: number) {
+        return this.termViewer.focusOnTerm(termId);
     }
 
     public highlightDebuggerLine(termId: number) {

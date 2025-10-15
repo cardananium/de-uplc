@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SerializableBudget",
+  "type": "object",
+  "properties": {
+    "exUnitsAvailable": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "exUnitsSpent": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "memoryUnitsAvailable": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "memoryUnitsSpent": {
+      "type": "integer",
+      "format": "int64"
+    }
+  },
+  "required": [
+    "exUnitsSpent",
+    "exUnitsAvailable",
+    "memoryUnitsSpent",
+    "memoryUnitsAvailable"
+  ]
+}

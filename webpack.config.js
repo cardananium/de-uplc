@@ -8,12 +8,23 @@ const path = require('path');
 const config = {
     target: 'node', // vscode extensions run in a Node.js-context
 
-    entry: './src/extension.ts', // the entry point of this extension
+    node: {
+        __dirname: false,
+        __filename: false,
+    },
+
+    entry: {
+        extension: './src/extension.ts',
+        'wasm-worker-host-runner': './src/debugger/wasm-worker-host-runner.ts'
+    },
     output: {
         path: path.resolve(__dirname, 'out'),
-        filename: 'extension.js',
+        filename: '[name].js',
         libraryTarget: 'commonjs2',
         devtoolModuleFilenameTemplate: '../[resource-path]',
+    },
+    experiments: {
+        asyncWebAssembly: true,
     },
     devtool: 'source-map',
     externals: {
@@ -28,11 +39,6 @@ const config = {
                 test: /\.ts$/,
                 exclude: /node_modules/,
                 use: 'ts-loader'
-            },
-            {
-                test: /\.wasm$/,
-                type: 'javascript/auto',
-                use: 'file-loader'
             }
         ]
     }

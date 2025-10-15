@@ -1,9 +1,18 @@
 import * as vscode from 'vscode';
-import { MachineState, BuiltinRuntime, Constant, Term, Type, Env, Value, MachineContext } from '../../debugger-types';
+import { MachineState, BuiltinRuntime, Constant, Term, Type, Env, Value, MachineContext, EitherTermOrId } from '../../debugger-types';
 
 export interface UplcNode {
     getTreeItem(): vscode.TreeItem;
     getChildren(): UplcNode[];
+}
+
+// Helper function to handle EitherTermOrId
+function createTermNode(termOrId: EitherTermOrId, label: string): UplcNode {
+    if (termOrId.type === 'Term') {
+        return new TermNode(termOrId.term, label);
+    } else {
+        return new SimpleNode(`${label} (Term ID: ${termOrId.id})`);
+    }
 }
 
 export class SimpleNode implements UplcNode {
@@ -35,9 +44,9 @@ export class MachineStateNode implements UplcNode {
             case "Return":
                 return [new ValueNode(this.state.value, 'Return value')];
             case "Compute":
-                return [new TermNode(this.state.term, 'Term to compute')];
+                return [createTermNode(this.state.term, 'Term to compute')];
             case "Done":
-                return [new TermNode(this.state.term, 'Computed term')];
+                return [createTermNode(this.state.term, 'Computed term')];
         }
     }
 }
@@ -65,7 +74,7 @@ export class ContextNode implements UplcNode {
             case "FrameAwaitArg":
                 return [new ValueNode(this.context.value, 'Await Arg Value')];
             case "FrameAwaitFunTerm":
-                return [new EnvNode(this.context.env), new TermNode(this.context.term, 'Await Fun Term')];
+                return [new EnvNode(this.context.env), createTermNode(this.context.term, 'Await Fun Term')];
             case "FrameAwaitFunValue":
                 return [new ValueNode(this.context.value, 'Await Fun Value')];
             case "FrameForce":
@@ -74,13 +83,13 @@ export class ContextNode implements UplcNode {
                 return [
                     new EnvNode(this.context.env),
                     new SimpleNode(`Constructor tag: ${this.context.tag}`),
-                    ...this.context.terms.map((t, i) => new TermNode(t, `Remaining term ${i}`)),
+                    ...this.context.terms.map((t, i) => createTermNode(t, `Remaining term ${i}`)),
                     ...this.context.values.map((v, i) => new ValueNode(v, `Evaluated value ${i}`))
                 ];
             case "FrameCases":
                 return [
                     new EnvNode(this.context.env),
-                    ...this.context.terms.map((b, i) => new TermNode(b, `Branch ${i}`))
+                    ...this.context.terms.map((b, i) => createTermNode(b, `Branch ${i}`))
                 ];
             case "NoFrame":
                 return [];
@@ -148,11 +157,11 @@ export class ValueNode implements UplcNode {
             case "Con":
                 return [new ConstantNode(this.value.constant)];
             case "Delay":
-                return [new TermNode(this.value.body, 'Delayed Term'), new EnvNode(this.value.env)];
+                return [createTermNode(this.value.body, 'Delayed Term'), new EnvNode(this.value.env)];
             case "Lambda":
                 return [
                     new SimpleNode(`Parameter: ${this.value.parameterName}`),
-                    new TermNode(this.value.body, 'Body'),
+                    createTermNode(this.value.body, 'Body'),
                     new EnvNode(this.value.env)
                 ];
             case "Builtin":

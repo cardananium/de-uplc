@@ -1,0 +1,18 @@
+# WASM build outputs
+/pkg
+/pkg-*
+/wasm-out
+
+# Rust build outputs
+/target
+Cargo.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db 
