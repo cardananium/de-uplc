@@ -50,19 +50,7 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
   }
 
   private initializeWorker() {
-    console.log('[WasmDebuggerEngineWorker] Initializing worker thread...');
-    
-    // Create worker with 64MB stack size
-    // Use require.resolve to get the correct path in webpack bundle
-    let workerPath: string;
-    try {
-      // For webpack, the worker file will be in the same directory
-      workerPath = path.join(__dirname, 'wasm-worker.js');
-      console.log('[WasmDebuggerEngineWorker] Worker path:', workerPath);
-    } catch (e) {
-      console.error('[WasmDebuggerEngineWorker] Failed to resolve worker path:', e);
-      throw e;
-    }
+    const workerPath = path.join(__dirname, 'wasm-worker.js');
 
     this.worker = new Worker(workerPath, {
       workerData: {},
@@ -71,12 +59,9 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
       }
     });
 
-    // Handle messages from worker
     this.worker.on('message', (message: WorkerResponse | WorkerEvent | { type: 'ready' }) => {
-      console.log('[WasmDebuggerEngineWorker] Received message from worker:', message);
       if ('type' in message) {
         if (message.type === 'ready') {
-          console.log('[WasmDebuggerEngineWorker] Worker is ready');
           this.workerReady = true;
           this.workerReadyResolve();
         } else if (message.type === 'event') {
@@ -87,15 +72,12 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
       }
     });
 
-    // Handle worker errors
     this.worker.on('error', error => {
       console.error('[WasmDebuggerEngineWorker] Worker error:', error);
       this.rejectAllPending(error);
     });
 
-    // Handle worker exit
     this.worker.on('exit', code => {
-      console.log(`[WasmDebuggerEngineWorker] Worker exited with code ${code}`);
       if (code !== 0) {
         console.error(`[WasmDebuggerEngineWorker] Worker stopped with exit code ${code}`);
         this.rejectAllPending(new Error(`Worker stopped with exit code ${code}`));
@@ -146,7 +128,6 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
   }
 
   private async callWorker<T>(method: string, ...args: any[]): Promise<T> {
-    console.log(`[WasmDebuggerEngineWorker] Calling worker method: ${method}`);
     await this.ensureWorkerReady();
 
     if (!this.worker) {
@@ -159,10 +140,8 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
       this.pendingCalls.set(id, { resolve, reject });
       
       const message: WorkerMessage = { id, method, args };
-      console.log(`[WasmDebuggerEngineWorker] Sending message to worker:`, { id, method });
       this.worker!.postMessage(message);
       
-      // Add timeout for debugging
       setTimeout(() => {
         if (this.pendingCalls.has(id)) {
           console.error(`[WasmDebuggerEngineWorker] Call to ${method} timed out after 1800s`);
@@ -179,7 +158,6 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
   }
 
   async openTransaction(context: DebuggerContext): Promise<void> {
-    console.log('[WasmDebuggerEngineWorker] openTransaction called with context:', context.transaction.substring(0, 100) + '...');
     return this.callWorker('openTransaction', context);
   }
 
@@ -246,6 +224,18 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
 
   async getCurrentEnv(sessionId: string): Promise<Env> {
     return this.callWorker('getCurrentEnv', sessionId);
+  }
+
+  async getMachineStateLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<any> {
+    return this.callWorker('getMachineStateLazy', sessionId, path, returnFullObject);
+  }
+
+  async getMachineContextLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<any> {
+    return this.callWorker('getMachineContextLazy', sessionId, path, returnFullObject);
+  }
+
+  async getCurrentEnvLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<any> {
+    return this.callWorker('getCurrentEnvLazy', sessionId, path, returnFullObject);
   }
 
   async start(sessionId: string): Promise<void> {

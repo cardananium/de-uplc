@@ -1,8 +1,13 @@
 .vscode/**
 .vscode-test/**
-out/**
+.idea/**
 node_modules/**
+!node_modules/@vscode/codicons/**
 src/**
+rust-src/**
+scripts/**
+temp/**
+docs/**
 .gitignore
 .yarnrc
 webpack.config.js

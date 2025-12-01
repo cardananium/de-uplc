@@ -81,7 +81,7 @@ export class EventBridge {
           await this.fillSessionSpecificFields();
           const termId = await this.currentSession?.getCurrentTermId();
           if (termId !== undefined) {
-            this.tabManager.highlightDebuggerLine(termId);
+            await this.tabManager.highlightDebuggerLine(termId);
           } else {
             this.logDebugMessage(`Warning: Current term ID is undefined on pause.`);
           }
@@ -100,7 +100,7 @@ export class EventBridge {
           await this.fillSessionSpecificFields();
           const termId = await this.currentSession?.getCurrentTermId();
           if (termId !== undefined) {
-            this.tabManager.highlightDebuggerLine(termId);
+            await this.tabManager.highlightDebuggerLine(termId);
           } else {
             this.logDebugMessage(`Warning: Current term ID is undefined on pause.`);
           }
@@ -127,7 +127,7 @@ export class EventBridge {
         DebuggerControlEventNames.DEBUGGER_CAUGHT_BREAKPOINT,
         async (termId: number) => {
           this.logDebugMessage(`Event: DEBUGGER_CAUGHT_BREAKPOINT at termId: ${termId}`);
-          this.tabManager.highlightDebuggerLine(termId);
+          await this.tabManager.highlightDebuggerLine(termId);
           await this.fillSessionSpecificFields();
           this.debuggerPanelViewProvider.setDebuggerState("pause");
           this.debuggerPanelViewProvider.unlockInterface();
@@ -294,6 +294,47 @@ export class EventBridge {
         }
       )
     );
+
+    this.context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'uplcTree.reloadLazyNode',
+        async (node: any) => {
+          this.logDebugMessage(`Event: uplcTree.reloadLazyNode`);
+          
+          if (!this.currentSession) {
+            vscode.window.showWarningMessage('No active debugging session');
+            return;
+          }
+
+          // Simple approach: reload all data with full objects
+          // In a real implementation, you would track the path to the specific node
+          vscode.window.showInformationMessage('Loading full data...');
+
+          try {
+            // Reload all tree data with returnFullObject: true
+            const machineStateLazy = await this.currentSession.getMachineStateLazy("", true);
+            if (machineStateLazy && 'machine_state_type' in machineStateLazy) {
+              this.machineStateTreeDataProvider.setMachineStateLazy(machineStateLazy as any);
+            }
+            
+            const contextsLazy = await this.currentSession.getMachineContextLazy("", true);
+            if (contextsLazy && Array.isArray(contextsLazy)) {
+              this.machineContextTreeDataProvider.setContextsLazy(contextsLazy as any);
+            }
+            
+            const currentEnvLazy = await this.currentSession.getCurrentEnvLazy("", true);
+            if (currentEnvLazy && ('values' in currentEnvLazy || '_type' in currentEnvLazy)) {
+              this.environmentsTreeDataProvider.setCurrentEnvLazy(currentEnvLazy as any);
+            }
+            
+            vscode.window.showInformationMessage('Full data loaded successfully!');
+          } catch (error) {
+            vscode.window.showErrorMessage(`Failed to load full data: ${error}`);
+          }
+        }
+      )
+    );
+
   }
 
   private async fillPossibleFields() {
@@ -325,18 +366,29 @@ export class EventBridge {
   }
 
   private async fillSessionSpecificFields() {
-    const machineState = await this.currentSession?.getMachineState();
-    if (machineState) {
-      this.machineStateTreeDataProvider.setMachineState(machineState);
+    // Always use lazy loading mode
+    // Pass SessionController to tree data providers for dynamic loading
+    this.machineStateTreeDataProvider.setSessionController(this.currentSession);
+    this.machineContextTreeDataProvider.setSessionController(this.currentSession);
+    this.environmentsTreeDataProvider.setSessionController(this.currentSession);
+    
+    // Load initial structure with lazy loading
+      const machineStateLazy = await this.currentSession?.getMachineStateLazy();
+    if (machineStateLazy && 'machine_state_type' in machineStateLazy) {
+        this.machineStateTreeDataProvider.setUseLazyLoading(true);
+      this.machineStateTreeDataProvider.setMachineStateLazy(machineStateLazy as any);
+      }
+      const contextsLazy = await this.currentSession?.getMachineContextLazy();
+    if (contextsLazy && Array.isArray(contextsLazy)) {
+        this.machineContextTreeDataProvider.setUseLazyLoading(true);
+      this.machineContextTreeDataProvider.setContextsLazy(contextsLazy as any);
+      }
+      const currentEnvLazy = await this.currentSession?.getCurrentEnvLazy();
+      if (currentEnvLazy && ('values' in currentEnvLazy || '_type' in currentEnvLazy)) {
+        this.environmentsTreeDataProvider.setUseLazyLoading(true);
+        this.environmentsTreeDataProvider.setCurrentEnvLazy(currentEnvLazy as any);
     }
-    const contexts = await this.currentSession?.getMachineContext();
-    if (contexts) {
-      this.machineContextTreeDataProvider.setContexts(contexts);
-    }
-    const currentEnv = await this.currentSession?.getCurrentEnv();
-    if (currentEnv) {
-      this.environmentsTreeDataProvider.setCurrentEnv(currentEnv);
-    }
+    
     const budget = await this.currentSession?.getBudget();
     if (budget) {
       this.debuggerPanelViewProvider.setBudget(budget);
@@ -514,8 +566,12 @@ export class EventBridge {
         }
       }
 
-      // Get the full node data including children
-      const nodeData = this.extractNodeData(node);
+      // Always load full node data from SessionController with returnFullObject: true
+      // This ensures we get complete data even if tree has partial data
+      const loadedNodeData = await this.loadFullNodeData(node);
+      
+      // Get the node data (use loaded data if available, otherwise extract from node)
+      const nodeData = loadedNodeData || this.extractNodeData(node);
 
       if (!nodeData) {
         vscode.window.showWarningMessage("Unable to extract node data.");
@@ -534,6 +590,62 @@ export class EventBridge {
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to show node in tab: ${error}`);
     }
+  }
+
+  /**
+   * Always load full node data with returnFullObject: true
+   * This is used for showNodeInTab to display complete data
+   * Even if data is already loaded, it might be partial (returnFullObject: false)
+   */
+  private async loadFullNodeData(node: any): Promise<any | null> {
+    if (!this.currentSession || !node) {
+      return null;
+    }
+
+    // Try to extract path and dataSource from node
+    let path: string[] = [];
+    let dataSource: 'machineState' | 'context' | 'env' | null = null;
+
+    // Check if node has path property
+    if (node.path && Array.isArray(node.path)) {
+      path = node.path;
+    }
+    
+    // Check if node has dataSource property
+    if (node.dataSource) {
+      dataSource = node.dataSource;
+    }
+
+    // If we have dataSource, always load full data with returnFullObject: true
+    // Path can be empty for root nodes (MachineState, Environment)
+    if (dataSource) {
+      try {
+        // Use path if available, otherwise empty array for root
+        const pathJson = JSON.stringify(path || []);
+        let fullData: any;
+
+        console.log(`[loadFullNodeData] dataSource=${dataSource}, path=${pathJson}`);
+
+        switch (dataSource) {
+          case 'machineState':
+            fullData = await this.currentSession.getMachineStateLazy(pathJson, true);
+            break;
+          case 'context':
+            fullData = await this.currentSession.getMachineContextLazy(pathJson, true);
+            break;
+          case 'env':
+            fullData = await this.currentSession.getCurrentEnvLazy(pathJson, true);
+            break;
+        }
+
+        console.log(`[loadFullNodeData] Loaded successfully`);
+        return fullData;
+      } catch (error) {
+        console.error('Failed to load full data for showNodeInTab:', error);
+      }
+    }
+
+    return null;
   }
 
   private async presentFinishedResult(term: Term) {
@@ -588,6 +700,9 @@ export class EventBridge {
       result.term = node.term;
     } else if (node.runtime) {
       result.runtime = node.runtime;
+    } else if (node.data) {
+      // PlutusDataNode - extract the data field directly
+      result.data = node.data;
     } else {
       // Try to extract any visible properties
       const nodeItem = node.getTreeItem?.();
@@ -655,22 +770,63 @@ export class EventBridge {
       return `Log Entry ${node.getIndex() + 1}`;
     }
 
+    let baseName = 'UPLC Node';
     const treeItem = node.getTreeItem?.();
     if (treeItem?.label) {
       // Clean up the label to make it a valid filename
-      return treeItem.label.toString().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+      baseName = treeItem.label.toString().replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    } else if (node.state) {
+      baseName = "Machine State";
+    } else if (node.context) {
+      baseName = "Context";
+    } else if (node.env) {
+      baseName = "Environment";
+    } else if (node.value) {
+      baseName = "Value";
+    } else if (node.constant) {
+      baseName = "Constant";
+    } else if (node.type) {
+      baseName = "Type";
+    } else if (node.term) {
+      baseName = "Term";
+    } else if (node.runtime) {
+      baseName = "Runtime";
     }
 
-    // Fallback names based on node type
-    if (node.state) { return "Machine State"; }
-    if (node.context) { return "Context"; }
-    if (node.env) { return "Environment"; }
-    if (node.value) { return "Value"; }
-    if (node.constant) { return "Constant"; }
-    if (node.type) { return "Type"; }
-    if (node.term) { return "Term"; }
-    if (node.runtime) { return "Runtime"; }
+    // Add hash of node data as suffix to guarantee uniqueness
+    const dataHash = this.generateDataHash(node);
+    return `${baseName} ${dataHash}`;
+  }
 
-    return "UPLC Node";
+  /**
+   * Generate a short hash from node data for uniqueness
+   */
+  private generateDataHash(node: any): string {
+    try {
+      // Extract relevant data for hashing
+      let dataToHash = '';
+      
+      if (node.path && Array.isArray(node.path)) {
+        dataToHash += node.path.join('.');
+      }
+      
+      // Add some node data
+      if (node.state) dataToHash += JSON.stringify(node.state).substring(0, 100);
+      else if (node.context) dataToHash += JSON.stringify(node.context).substring(0, 100);
+      else if (node.env) dataToHash += JSON.stringify(node.env).substring(0, 100);
+      else if (node.value) dataToHash += JSON.stringify(node.value).substring(0, 100);
+      else if (node.constant) dataToHash += JSON.stringify(node.constant).substring(0, 100);
+      else if (node.term) dataToHash += JSON.stringify(node.term).substring(0, 100);
+      else if (node.runtime) dataToHash += JSON.stringify(node.runtime).substring(0, 100);
+      else if (node.data) dataToHash += JSON.stringify(node.data).substring(0, 100);
+      
+      // Generate simple hash (crypto is available in Node.js)
+      const crypto = require('crypto');
+      const hash = crypto.createHash('md5').update(dataToHash).digest('hex');
+      return hash.substring(0, 8); // First 8 characters
+    } catch (error) {
+      // Fallback to timestamp if hashing fails
+      return Date.now().toString(36).substring(-6);
+    }
   }
 }

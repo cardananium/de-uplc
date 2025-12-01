@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::budget::SerializableBudget;
-use crate::debugger_engine::{DebuggerError};
+use crate::debugger_engine::{DebuggerError, lazy_session_api::LazySessionApi};
 use crate::wasm_tools::JsError;
 use crate::{SerializableEnv, SerializableExecutionStatus, SerializableMachineContext, SerializableMachineState, SerializableScriptContext, SerializableTerm};
 use pallas_primitives::conway::Language;
@@ -9,7 +9,6 @@ use uplc::{
     ast::{NamedDeBruijn, Program, Term},
     machine::{
         cost_model::{CostModel, ExBudget},
-        value::Value,
         MachineState,
     },
     manual_machine::ManualMachine,
@@ -224,9 +223,7 @@ impl SessionController {
 
     pub(crate) fn get_current_env_inner(&self) -> Result<SerializableEnv, JsError> {
         match self.machine.current_state() {
-            MachineState::Compute(_, env, _)
-            | MachineState::Return(_, Value::Lambda { env, .. })
-            | MachineState::Return(_, Value::Delay { env, .. }) => {
+            MachineState::Compute(_, env, _) => {
                 let serializable_env: SerializableEnv = SerializableEnv::from_uplc_env_with_ids(env, &self.term_ids);
                 Ok(serializable_env)
             }
@@ -291,6 +288,36 @@ impl SessionController {
     /// Gets the current version number of the session controller
     pub fn get_version(&self) -> u64 {
         self.version
+    }
+    
+    /// Get machine state with lazy loading support
+    /// 
+    /// # Arguments
+    /// * `path` - JSON array of path segments to navigate to specific element
+    /// * `return_full_object` - If true, returns full object at path; if false, returns object with children 1 level deep only
+    pub fn get_machine_state_lazy(&self, path: String, return_full_object: bool) -> Result<String, JsError> {
+        let path_segments = LazySessionApi::parse_path(&path)?;
+        LazySessionApi::get_machine_state_lazy(&self.machine, &self.term_ids, path_segments, return_full_object)
+    }
+    
+    /// Get current environment with lazy loading support
+    /// 
+    /// # Arguments
+    /// * `path` - JSON array of path segments to navigate to specific element
+    /// * `return_full_object` - If true, returns full object at path; if false, returns object with children 1 level deep only
+    pub fn get_current_env_lazy(&self, path: String, return_full_object: bool) -> Result<String, JsError> {
+        let path_segments = LazySessionApi::parse_path(&path)?;
+        LazySessionApi::get_current_env_lazy(&self.machine, &self.term_ids, path_segments, return_full_object)
+    }
+    
+    /// Get machine context with lazy loading support
+    /// 
+    /// # Arguments
+    /// * `path` - JSON array of path segments to navigate to specific element (e.g., ["0", "env", "values", "2"])
+    /// * `return_full_object` - If true, returns full object at path; if false, returns object with children 1 level deep only
+    pub fn get_machine_context_lazy(&self, path: String, return_full_object: bool) -> Result<String, JsError> {
+        let path_segments = LazySessionApi::parse_path(&path)?;
+        LazySessionApi::get_machine_context_lazy(&self.machine, &self.term_ids, path_segments, return_full_object)
     }
 }
 

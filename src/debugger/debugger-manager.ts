@@ -17,7 +17,6 @@ export class DebuggerManager {
 
     constructor() {
         this.debuggerEngine = new WasmEngineHostRunner();
-        console.log('DebuggerManager constructor: WasmDebuggerEngine');
         this.attachEngineSubscriptions();
     }
 
@@ -34,15 +33,11 @@ export class DebuggerManager {
         };
 
         engine.onExecutionComplete = (result: ExecutionStatus) => {
-            console.log('[DebuggerManager] Execution completed with status:', result.status_type, result);
-
             if (result.status_type === 'Done') {
                 const term = (result as { status_type: 'Done'; result: Term }).result;
-                console.log('[DebuggerManager] Successful execution, showing result');
                 EventEmitter.debuggerCaughtFinished(term);
             } else if (result.status_type === 'Error') {
                 const message = (result as { status_type: 'Error'; message: string }).message;
-                console.log('[DebuggerManager] Execution error:', message);
                 EventEmitter.debuggerCaughtError(message);
             } else {
                 console.warn('[DebuggerManager] Unexpected execution status:', result);
@@ -166,7 +161,6 @@ export class DebuggerManager {
                 const requiredUtxos = await this.debuggerEngine.getRequiredUtxos(context.transaction);
                 if (requiredUtxos.length > 0) {
                     filledContext.utxos = await this.fetchUtxos(requiredUtxos, network);
-                    console.log('Fetched UTXOs:', filledContext.utxos);
                     
                     // Check if all required UTXOs were fetched
                     const fetchedUtxos = filledContext.utxos;

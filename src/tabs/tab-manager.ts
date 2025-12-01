@@ -43,8 +43,8 @@ export class TabManager {
         return this.termViewer.focusOnTerm(termId);
     }
 
-    public highlightDebuggerLine(termId: number) {
-        return this.termViewer.highlightDebuggerLine(termId);
+    public async highlightDebuggerLine(termId: number) {
+        return await this.termViewer.highlightDebuggerLine(termId);
     }
 
     public clearDebuggerHighlight() {
