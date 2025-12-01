@@ -619,6 +619,31 @@
     "SerializableEnvLazy": {
       "type": "object",
       "properties": {
+        "displayed_count": {
+          "description": "Number of elements displayed (M in \"M of N\")",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "total_count": {
+          "description": "Total number of elements in the environment (N in \"M of N\")",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "truncation_message": {
+          "description": "Message to display when elements are truncated",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "values": {
           "type": "array",
           "items": {
