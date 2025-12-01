@@ -51,9 +51,22 @@ pub struct SerializableEnv {
     pub values: Vec<SerializableValue>,
 }
 
+/// Maximum number of elements to display when loading full object
+/// to prevent performance issues with large environments
+pub const MAX_FULL_OBJECT_ELEMENTS: usize = 10;
+
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
 pub struct SerializableEnvLazy {
     pub values: Vec<LazyLoadableValue>,
+    /// Number of elements displayed (M in "M of N")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub displayed_count: Option<usize>,
+    /// Total number of elements in the environment (N in "M of N")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_count: Option<usize>,
+    /// Message to display when elements are truncated
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truncation_message: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
@@ -361,9 +374,15 @@ impl SerializableEnv {
         term_ids: &HashSet<i32>,
         config: &LazyLoadConfig
     ) -> SerializableEnvLazy {
-        let values: Vec<LazyLoadableValue> = if config.return_full_object {
-            // Full loading - load everything recursively
-            env.iter()
+        let total_count = env.len();
+        
+        if config.return_full_object {
+            // Full loading - load everything recursively, but limit to MAX_FULL_OBJECT_ELEMENTS
+            let should_truncate = total_count > MAX_FULL_OBJECT_ELEMENTS;
+            let elements_to_load = if should_truncate { MAX_FULL_OBJECT_ELEMENTS } else { total_count };
+            
+            let values: Vec<LazyLoadableValue> = env.iter()
+                .take(elements_to_load)
                 .map(|value| {
                     let full_config = LazyLoadConfig {
                         path: vec![],
@@ -371,10 +390,29 @@ impl SerializableEnv {
                     };
                     LazyLoadableValue::Loaded(from_uplc_value_lazy(value, term_ids, &full_config))
                 })
-                .collect()
+                .collect();
+            
+            if should_truncate {
+                SerializableEnvLazy {
+                    values,
+                    displayed_count: Some(elements_to_load),
+                    total_count: Some(total_count),
+                    truncation_message: Some(format!(
+                        "Showing {} of {} elements. Use the left panel tree view to explore specific elements.",
+                        elements_to_load, total_count
+                    )),
+                }
+            } else {
+                SerializableEnvLazy {
+                    values,
+                    displayed_count: None,
+                    total_count: None,
+                    truncation_message: None,
+                }
+            }
         } else {
             // Lazy loading based on path
-            load_vec_lazy(
+            let values: Vec<LazyLoadableValue> = load_vec_lazy(
                 &config.path,
                 "", // Root level, no field name
                 &env.iter().collect::<Vec<_>>(),
@@ -401,10 +439,15 @@ impl SerializableEnv {
             )
             .into_iter()
             .map(|l| LazyLoadableValue::from(l))
-            .collect()
-        };
-        
-        SerializableEnvLazy { values }
+            .collect();
+            
+            SerializableEnvLazy {
+                values,
+                displayed_count: None,
+                total_count: None,
+                truncation_message: None,
+            }
+        }
     }
 }
 
@@ -1230,7 +1273,12 @@ pub fn navigate_to_env_lazy(
     // For non-empty paths, we need to navigate to a value
     match navigate_to_value_from_env(env, path, term_ids, return_full_object) {
         NavigationResult::Found(_) => NavigationResult::InvalidPath("Path leads to a value, not an env".to_string()),
-        other => other.map(|_| SerializableEnvLazy { values: vec![] }) // This shouldn't happen
+        other => other.map(|_| SerializableEnvLazy { 
+            values: vec![],
+            displayed_count: None,
+            total_count: None,
+            truncation_message: None,
+        }) // This shouldn't happen
     }
 }
 

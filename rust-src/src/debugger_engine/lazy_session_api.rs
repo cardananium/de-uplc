@@ -135,7 +135,12 @@ impl LazySessionApi {
                     }
                 }
             }
-            _ => Ok(serde_json::to_string(&crate::value::SerializableEnvLazy { values: vec![] })
+            _ => Ok(serde_json::to_string(&crate::value::SerializableEnvLazy { 
+                values: vec![],
+                displayed_count: None,
+                total_count: None,
+                truncation_message: None,
+            })
                 .map_err(|e| DebuggerError::MachineError(e.to_string()))?),
         }
     }

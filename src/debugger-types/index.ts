@@ -309,6 +309,12 @@ interface Env {
 }
 
 interface EnvLazy {
+  
+  displayed_count?: number | null;
+  
+  total_count?: number | null;
+  
+  truncation_message?: string | null;
   values: LazyLoadableValue[];
 }
 

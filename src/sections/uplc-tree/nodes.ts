@@ -183,7 +183,7 @@ export class LoadableLazyNode implements UplcNode {
         
         // If it's an Env, create children as ValueNodeLazy
         if (data.values && Array.isArray(data.values)) {
-            return data.values.map((value: any, index: number) => 
+            const nodes: UplcNode[] = data.values.map((value: any, index: number) => 
                 new ValueNodeLazy(
                     value,
                     `Value ${index}`, // These are Values, not Env
@@ -192,6 +192,17 @@ export class LoadableLazyNode implements UplcNode {
                     this.sessionController
                 )
             );
+            
+            // Add truncation info if elements were limited
+            if (data.truncation_message && data.displayed_count !== undefined && data.total_count !== undefined) {
+                nodes.push(new TruncationInfoNode(
+                    data.displayed_count,
+                    data.total_count,
+                    data.truncation_message
+                ));
+            }
+            
+            return nodes;
         }
         
         // If it's a Context
@@ -252,6 +263,33 @@ export class SimpleNode implements UplcNode {
         item.contextValue = 'uplcNode';
         return item;
     }
+    getChildren(): UplcNode[] {
+        return [];
+    }
+}
+
+/**
+ * Node that displays truncation information when elements are limited
+ */
+export class TruncationInfoNode implements UplcNode {
+    constructor(
+        private displayedCount: number,
+        private totalCount: number,
+        private message: string
+    ) {}
+    
+    getTreeItem(): vscode.TreeItem {
+        const item = new vscode.TreeItem(
+            `⚠️ Showing ${this.displayedCount} of ${this.totalCount} elements`,
+            vscode.TreeItemCollapsibleState.None
+        );
+        item.description = this.message;
+        item.tooltip = this.message;
+        item.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('editorWarning.foreground'));
+        item.contextValue = 'truncationInfo';
+        return item;
+    }
+    
     getChildren(): UplcNode[] {
         return [];
     }
@@ -599,13 +637,25 @@ export class EnvNodeLazy implements UplcNode {
         // Build proper path based on parent path
         // If parent path is ['env'] in machineState, children will be ['env', 'values', '0']
         // If parent path is ['context', 'env'] in context, children will be ['context', 'env', 'values', '0']
-        return loadedEnv.values.map((v, i) => new ValueNodeLazy(
+        const nodes: UplcNode[] = loadedEnv.values.map((v, i) => new ValueNodeLazy(
             v, 
             `Value ${i}`, // These are Values, not Env
             [...this.path, 'values', String(i)], // Append to parent path
             this.dataSource, // Inherit parent dataSource
             this.sessionController
         ));
+        
+        // Add truncation info if elements were limited
+        const envData = this.env as any;
+        if (envData.truncation_message && envData.displayed_count !== undefined && envData.total_count !== undefined) {
+            nodes.push(new TruncationInfoNode(
+                envData.displayed_count,
+                envData.total_count,
+                envData.truncation_message
+            ));
+        }
+        
+        return nodes;
     }
 }
 

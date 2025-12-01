@@ -1173,6 +1173,31 @@
       },
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {
+        "displayed_count": {
+          "description": "Number of elements displayed (M in \"M of N\")",
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "total_count": {
+          "description": "Total number of elements in the environment (N in \"M of N\")",
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "truncation_message": {
+          "description": "Message to display when elements are truncated",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "values": {
           "items": {
             "$ref": "#/$defs/LazyLoadableValue"
@@ -3534,6 +3559,31 @@
         },
         "SerializableEnvLazy": {
           "properties": {
+            "displayed_count": {
+              "description": "Number of elements displayed (M in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "total_count": {
+              "description": "Total number of elements in the environment (N in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "truncation_message": {
+              "description": "Message to display when elements are truncated",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "values": {
               "items": {
                 "$ref": "#/$defs/LazyLoadableValue"
@@ -6016,6 +6066,31 @@
         },
         "SerializableEnvLazy": {
           "properties": {
+            "displayed_count": {
+              "description": "Number of elements displayed (M in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "total_count": {
+              "description": "Total number of elements in the environment (N in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "truncation_message": {
+              "description": "Message to display when elements are truncated",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "values": {
               "items": {
                 "$ref": "#/$defs/LazyLoadableValue"
@@ -11829,6 +11904,31 @@
         },
         "SerializableEnvLazy": {
           "properties": {
+            "displayed_count": {
+              "description": "Number of elements displayed (M in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "total_count": {
+              "description": "Total number of elements in the environment (N in \"M of N\")",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "truncation_message": {
+              "description": "Message to display when elements are truncated",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "values": {
               "items": {
                 "$ref": "#/$defs/LazyLoadableValue"

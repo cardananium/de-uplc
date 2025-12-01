@@ -62,12 +62,18 @@ export class EventBridge {
         DebuggerControlEventNames.STOP_DEBUGGING,
         async () => {
           this.logDebugMessage(`Event: STOP_DEBUGGING`);
+          const currentRedeemer = await this.currentSession?.getRedeemer();
           await this.currentSession?.stop();
           this.currentSession = undefined;
           await this.tabManager.closeSessionSpecificTabs();
           await this.clearSessionSpecificFields();
           this.debuggerPanelViewProvider.setDebuggerState("stopped");
           this.debuggerPanelViewProvider.unlockInterface();
+          // Reset the session with the same redeemer to be able to open transaction context and script code
+          if (currentRedeemer) {
+            const newSession = await this.debuggerManager.initDebugSession(currentRedeemer);
+            this.currentSession = newSession;
+          }
         }
       )
     );
