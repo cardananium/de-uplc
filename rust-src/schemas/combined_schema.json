@@ -31,6 +31,1161 @@
       "title": "SerializableBudget",
       "type": "object"
     },
+    "SerializableEnvLazy": {
+      "$defs": {
+        "EitherTermOrIdLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "type": {
+                  "const": "Term",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Id",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableBuiltinRuntime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableBuiltinRuntimeLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableConstant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableConstantLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableData": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableEnv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableEnvLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTerm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableTermLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTermOrId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EitherTermOrIdLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableValue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableValueLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableBuiltinRuntimeLazy": {
+          "properties": {
+            "args": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            },
+            "arity": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "forces": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "fun": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "args",
+            "fun",
+            "forces",
+            "arity"
+          ],
+          "type": "object"
+        },
+        "SerializableConstantLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoList",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableConstant"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "elementType",
+                "values"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoPair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type",
+                "first_element",
+                "second_element"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/LazyLoadableData"
+                },
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "data"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "bytes": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "bytes"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableKeyValuePair": {
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "value": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ],
+          "type": "object"
+        },
+        "SerializablePlutusData": {
+          "description": "Serializable version of PlutusData that can be converted to/from JSON",
+          "oneOf": [
+            {
+              "properties": {
+                "any_constructor": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "tag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "key_value_pairs": {
+                  "items": {
+                    "$ref": "#/$defs/SerializableKeyValuePair"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "Map",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "key_value_pairs"
+              ],
+              "type": "object"
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "Int": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Int"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigUInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigUInt"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigNInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigNInt"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "properties": {
+                "type": {
+                  "const": "BigInt",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "BoundedBytes",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Array",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "values"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableTermLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Var",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "name"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "parameterName",
+                "body"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "argument": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "function": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Apply",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "function",
+                "argument"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constant",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Force",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Error",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "fun"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constructorTag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constructorTag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "branches": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "constr": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Case",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constr",
+                "branches"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableType": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "List",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "elementType"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "Pair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableValueLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "value_type": {
+                  "const": "Con",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "parameterName",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "runtime": {
+                  "$ref": "#/$defs/LazyLoadableBuiltinRuntime"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "fun",
+                "runtime",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableValue"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "tag",
+                "fields",
+                "term_id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "values": {
+          "items": {
+            "$ref": "#/$defs/LazyLoadableValue"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "title": "SerializableEnvLazy",
+      "type": "object"
+    },
     "SerializableExecutionStatus": {
       "$defs": {
         "SerializableConstant": {
@@ -1903,6 +3058,1305 @@
       ],
       "title": "SerializableMachineContext"
     },
+    "SerializableMachineContextLazy": {
+      "$defs": {
+        "EitherTermOrIdLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "type": {
+                  "const": "Term",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Id",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableBuiltinRuntime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableBuiltinRuntimeLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableConstant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableConstantLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableData": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableEnv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableEnvLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTerm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableTermLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTermOrId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EitherTermOrIdLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableValue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableValueLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableBuiltinRuntimeLazy": {
+          "properties": {
+            "args": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            },
+            "arity": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "forces": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "fun": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "args",
+            "fun",
+            "forces",
+            "arity"
+          ],
+          "type": "object"
+        },
+        "SerializableConstantLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoList",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableConstant"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "elementType",
+                "values"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoPair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type",
+                "first_element",
+                "second_element"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/LazyLoadableData"
+                },
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "data"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "bytes": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "bytes"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableEnvLazy": {
+          "properties": {
+            "values": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ],
+          "type": "object"
+        },
+        "SerializableKeyValuePair": {
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "value": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ],
+          "type": "object"
+        },
+        "SerializablePlutusData": {
+          "description": "Serializable version of PlutusData that can be converted to/from JSON",
+          "oneOf": [
+            {
+              "properties": {
+                "any_constructor": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "tag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "key_value_pairs": {
+                  "items": {
+                    "$ref": "#/$defs/SerializableKeyValuePair"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "Map",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "key_value_pairs"
+              ],
+              "type": "object"
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "Int": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Int"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigUInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigUInt"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigNInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigNInt"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "properties": {
+                "type": {
+                  "const": "BigInt",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "BoundedBytes",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Array",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "values"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableTermLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Var",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "name"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "parameterName",
+                "body"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "argument": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "function": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Apply",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "function",
+                "argument"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constant",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Force",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Error",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "fun"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constructorTag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constructorTag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "branches": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "constr": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Case",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constr",
+                "branches"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableType": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "List",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "elementType"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "Pair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableValueLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "value_type": {
+                  "const": "Con",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "parameterName",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "runtime": {
+                  "$ref": "#/$defs/LazyLoadableBuiltinRuntime"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "fun",
+                "runtime",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableValue"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "tag",
+                "fields",
+                "term_id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "oneOf": [
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameAwaitArg",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/LazyLoadableValue"
+            }
+          },
+          "required": [
+            "context_type",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameAwaitFunTerm",
+              "type": "string"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "term": {
+              "$ref": "#/$defs/LazyLoadableTermOrId"
+            }
+          },
+          "required": [
+            "context_type",
+            "env",
+            "term"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameAwaitFunValue",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/LazyLoadableValue"
+            }
+          },
+          "required": [
+            "context_type",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameForce",
+              "type": "string"
+            }
+          },
+          "required": [
+            "context_type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameConstr",
+              "type": "string"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "tag": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "term_id": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "terms": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableTermOrId"
+              },
+              "type": "array"
+            },
+            "values": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "context_type",
+            "env",
+            "tag",
+            "terms",
+            "values",
+            "term_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "FrameCases",
+              "type": "string"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "terms": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableTermOrId"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "context_type",
+            "env",
+            "terms"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context_type": {
+              "const": "NoFrame",
+              "type": "string"
+            }
+          },
+          "required": [
+            "context_type"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "SerializableMachineContextLazy"
+    },
     "SerializableMachineState": {
       "$defs": {
         "EitherTermOrId": {
@@ -3055,6 +5509,1399 @@
         }
       ],
       "title": "SerializableMachineState"
+    },
+    "SerializableMachineStateLazy": {
+      "$defs": {
+        "EitherTermOrIdLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "type": {
+                  "const": "Term",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Id",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableBuiltinRuntime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableBuiltinRuntimeLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableConstant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableConstantLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableContext": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableMachineContextLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableData": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableEnv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableEnvLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTerm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableTermLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTermOrId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EitherTermOrIdLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableValue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableValueLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableBuiltinRuntimeLazy": {
+          "properties": {
+            "args": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            },
+            "arity": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "forces": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "fun": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "args",
+            "fun",
+            "forces",
+            "arity"
+          ],
+          "type": "object"
+        },
+        "SerializableConstantLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoList",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableConstant"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "elementType",
+                "values"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoPair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type",
+                "first_element",
+                "second_element"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/LazyLoadableData"
+                },
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "data"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "bytes": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "bytes"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableEnvLazy": {
+          "properties": {
+            "values": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ],
+          "type": "object"
+        },
+        "SerializableKeyValuePair": {
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "value": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ],
+          "type": "object"
+        },
+        "SerializableMachineContextLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameAwaitArg",
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/LazyLoadableValue"
+                }
+              },
+              "required": [
+                "context_type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameAwaitFunTerm",
+                  "type": "string"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                }
+              },
+              "required": [
+                "context_type",
+                "env",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameAwaitFunValue",
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/LazyLoadableValue"
+                }
+              },
+              "required": [
+                "context_type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameForce",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "context_type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameConstr",
+                  "type": "string"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "tag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "terms": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTermOrId"
+                  },
+                  "type": "array"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableValue"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "context_type",
+                "env",
+                "tag",
+                "terms",
+                "values",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "FrameCases",
+                  "type": "string"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "terms": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTermOrId"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "context_type",
+                "env",
+                "terms"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "context_type": {
+                  "const": "NoFrame",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "context_type"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializablePlutusData": {
+          "description": "Serializable version of PlutusData that can be converted to/from JSON",
+          "oneOf": [
+            {
+              "properties": {
+                "any_constructor": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "tag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "key_value_pairs": {
+                  "items": {
+                    "$ref": "#/$defs/SerializableKeyValuePair"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "Map",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "key_value_pairs"
+              ],
+              "type": "object"
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "Int": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Int"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigUInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigUInt"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigNInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigNInt"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "properties": {
+                "type": {
+                  "const": "BigInt",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "BoundedBytes",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Array",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "values"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableTermLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Var",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "name"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "parameterName",
+                "body"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "argument": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "function": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Apply",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "function",
+                "argument"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constant",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Force",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Error",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "fun"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constructorTag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constructorTag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "branches": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "constr": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Case",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constr",
+                "branches"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableType": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "List",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "elementType"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "Pair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableValueLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "value_type": {
+                  "const": "Con",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTermOrId"
+                },
+                "env": {
+                  "$ref": "#/$defs/LazyLoadableEnv"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "parameterName",
+                "body",
+                "env",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "runtime": {
+                  "$ref": "#/$defs/LazyLoadableBuiltinRuntime"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "fun",
+                "runtime",
+                "term_id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableValue"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "term_id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "value_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value_type",
+                "tag",
+                "fields",
+                "term_id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "oneOf": [
+        {
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/LazyLoadableContext"
+            },
+            "machine_state_type": {
+              "const": "Return",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/LazyLoadableValue"
+            }
+          },
+          "required": [
+            "machine_state_type",
+            "context",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/LazyLoadableContext"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "machine_state_type": {
+              "const": "Compute",
+              "type": "string"
+            },
+            "term": {
+              "$ref": "#/$defs/LazyLoadableTermOrId"
+            }
+          },
+          "required": [
+            "machine_state_type",
+            "context",
+            "env",
+            "term"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "machine_state_type": {
+              "const": "Done",
+              "type": "string"
+            },
+            "term": {
+              "$ref": "#/$defs/LazyLoadableTermOrId"
+            }
+          },
+          "required": [
+            "machine_state_type",
+            "term"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "SerializableMachineStateLazy"
     },
     "SerializableScriptContext": {
       "$defs": {
@@ -6356,7 +10203,7 @@
               "type": "integer"
             },
             "term": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "term_type": {
               "const": "Delay",
@@ -6373,7 +10220,7 @@
         {
           "properties": {
             "body": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "id": {
               "format": "int32",
@@ -6398,10 +10245,10 @@
         {
           "properties": {
             "argument": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "function": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "id": {
               "format": "int32",
@@ -6448,7 +10295,7 @@
               "type": "integer"
             },
             "term": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "term_type": {
               "const": "Force",
@@ -6509,7 +10356,7 @@
             },
             "fields": {
               "items": {
-                "$ref": "#"
+                "$ref": "#/$defs/SerializableTerm"
               },
               "type": "array"
             },
@@ -6534,12 +10381,12 @@
           "properties": {
             "branches": {
               "items": {
-                "$ref": "#"
+                "$ref": "#/$defs/SerializableTerm"
               },
               "type": "array"
             },
             "constr": {
-              "$ref": "#"
+              "$ref": "#/$defs/SerializableTerm"
             },
             "id": {
               "format": "int32",
@@ -6604,7 +10451,7 @@
           "properties": {
             "args": {
               "items": {
-                "$ref": "#"
+                "$ref": "#/$defs/SerializableValue"
               },
               "type": "array"
             },
@@ -6829,7 +10676,7 @@
           "properties": {
             "values": {
               "items": {
-                "$ref": "#"
+                "$ref": "#/$defs/SerializableValue"
               },
               "type": "array"
             }
@@ -7477,7 +11324,7 @@
           "properties": {
             "fields": {
               "items": {
-                "$ref": "#"
+                "$ref": "#/$defs/SerializableValue"
               },
               "type": "array"
             },
@@ -7505,6 +11352,1161 @@
         }
       ],
       "title": "SerializableValue"
+    },
+    "SerializableValueLazy": {
+      "$defs": {
+        "EitherTermOrIdLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "type": {
+                  "const": "Term",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Id",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableBuiltinRuntime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableBuiltinRuntimeLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableConstant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableConstantLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableData": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableEnv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableEnvLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTerm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableTermLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableTermOrId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EitherTermOrIdLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "LazyLoadableValue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SerializableValueLazy"
+            },
+            {
+              "properties": {
+                "_kind": {
+                  "type": "string"
+                },
+                "_length": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "_type",
+                "_kind"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableBuiltinRuntimeLazy": {
+          "properties": {
+            "args": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            },
+            "arity": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "forces": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "fun": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "args",
+            "fun",
+            "forces",
+            "arity"
+          ],
+          "type": "object"
+        },
+        "SerializableConstantLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoList",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableConstant"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "elementType",
+                "values"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_element": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "ProtoPair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type",
+                "first_element",
+                "second_element"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/LazyLoadableData"
+                },
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "data"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "serialized": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "serialized"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "bytes": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "bytes"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableEnvLazy": {
+          "properties": {
+            "values": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ],
+          "type": "object"
+        },
+        "SerializableKeyValuePair": {
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            },
+            "value": {
+              "$ref": "#/$defs/SerializablePlutusData"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ],
+          "type": "object"
+        },
+        "SerializablePlutusData": {
+          "description": "Serializable version of PlutusData that can be converted to/from JSON",
+          "oneOf": [
+            {
+              "properties": {
+                "any_constructor": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                },
+                "tag": {
+                  "format": "uint64",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "tag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "key_value_pairs": {
+                  "items": {
+                    "$ref": "#/$defs/SerializableKeyValuePair"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "Map",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "key_value_pairs"
+              ],
+              "type": "object"
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "Int": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Int"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigUInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigUInt"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "BigNInt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "BigNInt"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "properties": {
+                "type": {
+                  "const": "BigInt",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "BoundedBytes",
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Array",
+                  "type": "string"
+                },
+                "values": {
+                  "items": {
+                    "$ref": "#/$defs/SerializablePlutusData"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "type",
+                "values"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableTermLazy": {
+          "oneOf": [
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Var",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "name"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Delay",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "body": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "parameterName": {
+                  "type": "string"
+                },
+                "term_type": {
+                  "const": "Lambda",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "parameterName",
+                "body"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "argument": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "function": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Apply",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "function",
+                "argument"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constant": {
+                  "$ref": "#/$defs/LazyLoadableConstant"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constant",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constant"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "term_type": {
+                  "const": "Force",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "term"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Error",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "fun": {
+                  "type": "string"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Builtin",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "fun"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "constructorTag": {
+                  "format": "uint",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "fields": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Constr",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constructorTag",
+                "fields"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "branches": {
+                  "items": {
+                    "$ref": "#/$defs/LazyLoadableTerm"
+                  },
+                  "type": "array"
+                },
+                "constr": {
+                  "$ref": "#/$defs/LazyLoadableTerm"
+                },
+                "id": {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                "term_type": {
+                  "const": "Case",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "term_type",
+                "id",
+                "constr",
+                "branches"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "SerializableType": {
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "Bool",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Integer",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "String",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "ByteString",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Unit",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "elementType": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "List",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "elementType"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "first_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "second_type": {
+                  "$ref": "#/$defs/SerializableType"
+                },
+                "type": {
+                  "const": "Pair",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "first_type",
+                "second_type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Data",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G1Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381G2Element",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "Bls12_381MlResult",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "oneOf": [
+        {
+          "properties": {
+            "constant": {
+              "$ref": "#/$defs/LazyLoadableConstant"
+            },
+            "value_type": {
+              "const": "Con",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_type",
+            "constant"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "body": {
+              "$ref": "#/$defs/LazyLoadableTermOrId"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "term_id": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "value_type": {
+              "const": "Delay",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_type",
+            "body",
+            "env",
+            "term_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "body": {
+              "$ref": "#/$defs/LazyLoadableTermOrId"
+            },
+            "env": {
+              "$ref": "#/$defs/LazyLoadableEnv"
+            },
+            "parameterName": {
+              "type": "string"
+            },
+            "term_id": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "value_type": {
+              "const": "Lambda",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_type",
+            "parameterName",
+            "body",
+            "env",
+            "term_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "fun": {
+              "type": "string"
+            },
+            "runtime": {
+              "$ref": "#/$defs/LazyLoadableBuiltinRuntime"
+            },
+            "term_id": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "value_type": {
+              "const": "Builtin",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_type",
+            "fun",
+            "runtime",
+            "term_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/LazyLoadableValue"
+              },
+              "type": "array"
+            },
+            "tag": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "term_id": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "value_type": {
+              "const": "Constr",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_type",
+            "tag",
+            "fields",
+            "term_id"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "SerializableValueLazy"
     }
   },
   "title": "DE-UPLC Public API Root Schemas",

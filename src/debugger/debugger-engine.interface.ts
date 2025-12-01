@@ -1,5 +1,8 @@
 import { Budget, DebuggerContext, UtxoReference } from "../common";
-import { MachineContext, MachineState, Term, Env, ScriptContext } from "../debugger-types";
+import { 
+    MachineContext, MachineState, Term, Env, ScriptContext,
+    MachineContextLazy, MachineStateLazy, EnvLazy, ValueLazy
+} from "../debugger-types";
 
 export interface IDebuggerEngine {
 
@@ -24,6 +27,16 @@ export interface IDebuggerEngine {
     getScript(sessionId: string): Promise<Term | undefined>;
     getCurrentTermId(sessionId: string): Promise<number | undefined>;
     getCurrentEnv(sessionId: string): Promise<Env | undefined>;
+    
+    // Lazy loading methods
+    // Note: Return type depends on the path:
+    // - getMachineStateLazy: MachineStateLazy (path=""), ValueLazy (path="value.*"), EnvLazy (path="env.*")
+    // - getMachineContextLazy: MachineContextLazy[] (path=""), MachineContextLazy (path="[i]"), ValueLazy/EnvLazy (path="[i].field.*")
+    // - getCurrentEnvLazy: EnvLazy (path=""), ValueLazy (path="values[i].*")
+    getMachineStateLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<MachineStateLazy | ValueLazy | EnvLazy>;
+    getMachineContextLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<MachineContextLazy[] | MachineContextLazy | ValueLazy | EnvLazy>;
+    getCurrentEnvLazy(sessionId: string, path: string, returnFullObject: boolean): Promise<EnvLazy | ValueLazy>;
+    
     start(sessionId: string): Promise<void>;
     continue(sessionId: string): Promise<void>;
     step(sessionId: string): Promise<void>;

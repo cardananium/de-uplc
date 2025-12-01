@@ -443,14 +443,8 @@ export class TermViewerProvider {
         const content = this.serializeTermToString(termWithId, uriString);
         this.contentProvider.updateContent(uri, content);
 
-        const document = await vscode.workspace.openTextDocument(uri);
-        // Set the language to UPLC for syntax highlighting
-        await vscode.languages.setTextDocumentLanguage(document, 'uplc');
-        this._currentEditor = await vscode.window.showTextDocument(document, {
-            preview: false,
-            viewColumn: vscode.ViewColumn.One,
-            preserveFocus: false
-        });
+        // Activate the term document with proper settings
+        this._currentEditor = await this.activateTermDocument(uri);
 
         // Update hints in the inlay hints provider
         const hints = this._termHints.get(uriString) || [];
@@ -1440,15 +1434,18 @@ export class TermViewerProvider {
     }
 
 
-    public highlightDebuggerLine(termId: number): boolean {
-        if (!this._currentEditor) {
-            this._currentDebuggerTermId = termId;
-            return false;
-        }
-
+    public async highlightDebuggerLine(termId: number): Promise<boolean> {
         this._currentDebuggerTermId = termId;
 
-        this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, []);
+        // If no current editor, try to find and activate the term viewer tab
+        if (!this._currentEditor) {
+            const termViewerTab = await this.findAndActivateTermViewerTab();
+            if (!termViewerTab) {
+                return false;
+            }
+        }
+
+        this._currentEditor!.setDecorations(this._decorationTypes.debuggerLine, []);
 
         const termLocations = this.getCurrentTermLocations();
         const termLocation = termLocations.find(loc => loc.termId === termId);
@@ -1465,9 +1462,9 @@ export class TermViewerProvider {
             )
         };
 
-        this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, [decoration]);
+        this._currentEditor!.setDecorations(this._decorationTypes.debuggerLine, [decoration]);
 
-        this._currentEditor.revealRange(
+        this._currentEditor!.revealRange(
             new vscode.Range(termLocation.startLine, 0, termLocation.startLine, 0),
             vscode.TextEditorRevealType.InCenter
         );
@@ -1501,8 +1498,12 @@ export class TermViewerProvider {
     }
 
     public async focusOnTerm(termId: string | number): Promise<boolean> {
+        // If no current editor, try to find and activate the term viewer tab
         if (!this._currentEditor) {
-            return false;
+            const termViewerTab = await this.findAndActivateTermViewerTab();
+            if (!termViewerTab) {
+                return false;
+            }
         }
 
         const termLocations = this.getCurrentTermLocations();
@@ -1511,21 +1512,67 @@ export class TermViewerProvider {
             return false;
         }
 
+        // Make sure the editor is focused
+        if (this._currentEditor) {
+            await vscode.window.showTextDocument(this._currentEditor.document, {
+                viewColumn: this._currentEditor.viewColumn,
+                preserveFocus: false
+            });
+        }
+
         // Select only the first line of the term using regular text selection
         const selection = new vscode.Selection(
             termLocation.startLine,
             0,
             termLocation.startLine,
-            this._currentEditor.document.lineAt(termLocation.startLine).text.length
+            this._currentEditor!.document.lineAt(termLocation.startLine).text.length
         );
 
-        this._currentEditor.selection = selection;
-        this._currentEditor.revealRange(
+        this._currentEditor!.selection = selection;
+        this._currentEditor!.revealRange(
             selection,
             vscode.TextEditorRevealType.InCenter
         );
 
         return true;
+    }
+
+    /**
+     * Activates a term document with proper settings (language, preview mode, etc.)
+     * @param uri The URI of the term document
+     * @param viewColumn The view column to show the document in
+     * @returns The activated text editor
+     */
+    private async activateTermDocument(uri: vscode.Uri, viewColumn?: vscode.ViewColumn): Promise<vscode.TextEditor> {
+        const document = await vscode.workspace.openTextDocument(uri);
+        // Set the language to UPLC for syntax highlighting
+        await vscode.languages.setTextDocumentLanguage(document, 'uplc');
+        return await vscode.window.showTextDocument(document, {
+            preview: false,
+            viewColumn: viewColumn || vscode.ViewColumn.One,
+            preserveFocus: false
+        });
+    }
+
+    /**
+     * Finds and activates the term viewer tab if it exists
+     * @returns A boolean indicating whether the tab was found and activated
+     */
+    private async findAndActivateTermViewerTab(): Promise<boolean> {
+        // Search for a term viewer tab in all tab groups
+        for (const tabGroup of vscode.window.tabGroups.all) {
+            for (const tab of tabGroup.tabs) {
+                if (tab.input instanceof vscode.TabInputText) {
+                    const uri = tab.input.uri;
+                    if (uri.scheme === TermViewerProvider.scheme) {
+                        // Found a term viewer tab, activate it
+                        this._currentEditor = await this.activateTermDocument(uri, tabGroup.viewColumn);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public clearHighlights(): void {

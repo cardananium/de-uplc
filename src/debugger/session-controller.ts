@@ -1,5 +1,10 @@
 import { Budget } from "../common";
-import { Env, MachineContext, MachineState, Term } from "../debugger-types";
+import { 
+    Env, EnvLazy, 
+    MachineContext, MachineContextLazy, 
+    MachineState, MachineStateLazy, 
+    Term, ValueLazy
+} from "../debugger-types";
 import { IDebuggerEngine } from "./debugger-engine.interface";
 
 export class SessionController {
@@ -60,6 +65,19 @@ export class SessionController {
 
     public async getCurrentEnv(): Promise<Env | undefined> {
         return this.debuggerEngine.getCurrentEnv(this.sessionId);
+    }
+
+    // Lazy loading methods
+    public async getMachineStateLazy(path: string = "", returnFullObject: boolean = false): Promise<MachineStateLazy | ValueLazy | EnvLazy> {
+        return this.debuggerEngine.getMachineStateLazy(this.sessionId, path, returnFullObject);
+    }
+
+    public async getMachineContextLazy(path: string = "", returnFullObject: boolean = false): Promise<MachineContextLazy[] | MachineContextLazy | ValueLazy | EnvLazy> {
+        return this.debuggerEngine.getMachineContextLazy(this.sessionId, path, returnFullObject);
+    }
+
+    public async getCurrentEnvLazy(path: string = "", returnFullObject: boolean = false): Promise<EnvLazy | ValueLazy> {
+        return this.debuggerEngine.getCurrentEnvLazy(this.sessionId, path, returnFullObject);
     }
 
     public async start() {

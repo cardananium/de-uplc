@@ -14,7 +14,12 @@ export class AdditionalControlsViewProvider implements vscode.WebviewViewProvide
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
         "additionalControlsView",
-        provider
+        provider,
+        {
+          webviewOptions: {
+            retainContextWhenHidden: true
+          }
+        }
       )
     );
     return provider;

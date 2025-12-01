@@ -1,5 +1,6 @@
 pub mod debugger_engine;
 pub mod session_controller;
+pub mod lazy_session_api;
 
 pub use debugger_engine::{DebuggerEngine};
 pub use session_controller::SessionController;

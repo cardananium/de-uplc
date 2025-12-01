@@ -1,23 +1,24 @@
-#!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
-const { compileFromFile } = require('json-schema-to-typescript');
+const { compile } = require('json-schema-to-typescript');
 
-const SCHEMAS_DIR = path.join(__dirname, '../rust-src/schemas');
-const COMBINED_SCHEMA_PATH = path.join(SCHEMAS_DIR, 'combined_schema.json');
-const OUTPUT_DIR = path.join(__dirname, '../src/debugger-types');
-const OUTPUT_FILE = path.join(OUTPUT_DIR, 'index.ts');
+// Configuration
+const OUTPUT_DIR = path.join(__dirname, '..', 'src', 'debugger-types');
+const COMBINED_SCHEMA_PATH = path.join(__dirname, '..', 'rust-src', 'schemas', 'combined_schema.json');
 
-// Root schemas that should be generated
+// Root schemas that are returned from public API methods
 const ROOT_SCHEMAS = [
     'SerializableScriptContext',
-    'SerializableContext', 
-    'SerializableMachineState',
+    'SerializableMachineContext',
+    'SerializableMachineState', 
     'SerializableBudget',
     'SerializableTerm',
     'SerializableValue',
-    'SerializableExecutionStatus'
+    'SerializableExecutionStatus',
+    'SerializableMachineStateLazy',
+    'SerializableMachineContextLazy',
+    'SerializableValueLazy',
+    'SerializableEnvLazy'
 ];
 
 /**
@@ -28,82 +29,133 @@ function cleanTypeName(name) {
 }
 
 /**
- * Create a standalone schema file for a specific type from combined schema
+ * Fix references in schema to use clean type names and handle root references
  */
-function createStandaloneSchema(combinedSchema, typeName) {
-    const schema = combinedSchema.schemas[typeName];
-    if (!schema) {
-        throw new Error(`Schema ${typeName} not found in combined schema`);
+function fixReferences(obj, renameMap, contextRootName = null) {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    if (Array.isArray(obj)) {
+        return obj.map(item => fixReferences(item, renameMap, contextRootName));
     }
     
-    // Create a complete schema with all definitions
-    const standaloneSchema = {
-        ...schema,
-        title: cleanTypeName(typeName),
-        $defs: {}
-    };
-    
-    // Extract all $defs from all schemas in combined schema
-    // This ensures all references can be resolved
-    Object.values(combinedSchema.schemas).forEach(schemaItem => {
-        if (schemaItem.$defs) {
-            Object.assign(standaloneSchema.$defs, schemaItem.$defs);
-        }
-    });
-    
-    // Also add the schemas themselves as definitions with cleaned names
-    Object.entries(combinedSchema.schemas).forEach(([schemaName, schemaItem]) => {
-        const cleanName = cleanTypeName(schemaName);
-        standaloneSchema.$defs[cleanName] = {
-            ...schemaItem,
-            title: cleanName
-        };
-        
-        // Also keep the original name for backward compatibility
-        standaloneSchema.$defs[schemaName] = {
-            ...schemaItem,
-            title: cleanName
-        };
-    });
-    
-    return standaloneSchema;
-}
-
-/**
- * Normalize schema for comparison by removing titles and sorting properties
- */
-function normalizeSchemaForComparison(schema) {
-    if (typeof schema !== 'object' || schema === null) {
-        return schema;
-    }
-    
-    if (Array.isArray(schema)) {
-        return schema.map(normalizeSchemaForComparison);
-    }
-    
-    const normalized = {};
-    const keys = Object.keys(schema).filter(key => key !== 'title').sort();
-    
-    for (const key of keys) {
-        if (key === '$ref') {
-            // Normalize references by removing "Serializable" prefix
-            normalized[key] = schema[key].replace(/Serializable([A-Z])/g, '$1');
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (key === '$ref' && typeof value === 'string') {
+            // Handle self-reference to root schema
+            // When processing a schema file, $ref: "#" means reference to the root of that file
+            // We need to find which original schema this came from and use the correct type name
+            if (value === '#') {
+                // This is a reference to the root schema of the original file
+                // For LazyLoadableEnv in SerializableEnvLazy.json, this would be SerializableEnvLazy
+                // which should become EnvLazy
+                if (contextRootName) {
+                    // Replace with a reference to the clean root name in $defs
+                    result[key] = `#/$defs/${contextRootName}`;
+                } else {
+                    result[key] = value;
+                }
+            } else {
+                // Extract the reference name and apply renaming
+                const match = value.match(/#\/\$defs\/(.+)$/);
+                if (match && renameMap.has(match[1])) {
+                    result[key] = `#/$defs/${renameMap.get(match[1])}`;
+                } else {
+                    result[key] = value;
+                }
+            }
+        } else if (typeof value === 'object' && value !== null) {
+            result[key] = fixReferences(value, renameMap, contextRootName);
         } else {
-            normalized[key] = normalizeSchemaForComparison(schema[key]);
+            result[key] = value;
         }
     }
-    
-    return normalized;
+    return result;
 }
 
 /**
- * Create a hash of schema content for deduplication
+ * Fix tuple types that json-schema-to-typescript generates as any[][]
+ * These are typically pairs or tuples in Rust that get serialized
  */
-function createSchemaHash(schema) {
-    // Create a normalized version of the schema for comparison
-    const normalized = normalizeSchemaForComparison(schema);
-    const normalizedString = JSON.stringify(normalized);
-    return require('crypto').createHash('md5').update(normalizedString).digest('hex');
+function fixTupleTypes(ts) {
+    // Known tuple type patterns in TxInfo
+    const tupleReplacements = [
+        // data: any[][] -> data: [string, PlutusData][]
+        { pattern: /(\s+data:\s*)any\[\]\[\]/g, replacement: '$1[string, PlutusData][]' },
+        
+        // redeemers: any[][] -> redeemers: [ScriptPurpose, Redeemer][]
+        { pattern: /(\s+redeemers:\s*)any\[\]\[\]/g, replacement: '$1[ScriptPurpose, Redeemer][]' },
+        
+        // withdrawals: any[][] -> withdrawals: [string, number][]
+        { pattern: /(\s+withdrawals:\s*)any\[\]\[\]/g, replacement: '$1[string, number][]' },
+        
+        // votes: any[][] -> votes: [Voter, [GovActionId, VotingProcedure][]][]
+        { pattern: /(\s+votes:\s*)any\[\]\[\]/g, replacement: '$1[Voter, [GovActionId, VotingProcedure][]][]' },
+    ];
+    
+    for (const { pattern, replacement } of tupleReplacements) {
+        ts = ts.replace(pattern, replacement);
+    }
+    
+    return ts;
+}
+
+/**
+ * Extract just the type definition from generated TypeScript
+ */
+function extractTypeDefinition(ts, typeName) {
+    // Remove exports and comments
+    ts = ts
+        .replace(/export\s+(type|interface)/g, '$1')
+        .replace(/\/\*\*[\s\S]*?\*\//g, '')
+        .replace(/\[k: string\]: unknown;?\s*/g, '')
+        .trim();
+    
+    // Find the type definition - handle multiline types correctly
+    const lines = ts.split('\n');
+    let inType = false;
+    let braceCount = 0;
+    let parenCount = 0;
+    let typeLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
+        const typeMatch = line.match(new RegExp(`^(type|interface)\\s+${typeName}\\b`));
+        
+        if (typeMatch && !inType) {
+            inType = true;
+            typeLines = [line];
+            braceCount += (line.match(/\{/g) || []).length;
+            braceCount -= (line.match(/\}/g) || []).length;
+            parenCount += (line.match(/\(/g) || []).length;
+            parenCount -= (line.match(/\)/g) || []).length;
+        } else if (inType) {
+            typeLines.push(line);
+            braceCount += (line.match(/\{/g) || []).length;
+            braceCount -= (line.match(/\}/g) || []).length;
+            parenCount += (line.match(/\(/g) || []).length;
+            parenCount -= (line.match(/\)/g) || []).length;
+            
+            // Check if we've reached the end of the type definition
+            if (braceCount === 0 && parenCount === 0) {
+                // Look ahead to see if next line starts with | (union type continuation)
+                if (i + 1 < lines.length && lines[i + 1].trim().startsWith('|')) {
+                    continue;
+                }
+                // Check if this line ends the type
+                if (trimmedLine === ';' || trimmedLine.endsWith(';') || 
+                    (trimmedLine.endsWith('}') && !lines[i + 1]?.trim().startsWith('|'))) {
+                    return typeLines.join('\n').trim();
+                }
+                // For interface, check if we're at the closing brace
+                if (typeMatch && typeMatch[1] === 'interface' && trimmedLine === '}') {
+                    return typeLines.join('\n').trim();
+                }
+            }
+        }
+    }
+    
+    return typeLines.length > 0 ? typeLines.join('\n').trim() : null;
 }
 
 /**
@@ -124,296 +176,191 @@ async function generateTypes() {
         process.exit(1);
     }
     
-    const generatedTypes = new Set();
-    const schemaHashes = new Map(); // Map from hash to type name for deduplication
-    const typeDefinitions = [];
-    const tempFiles = [];
-    
     try {
         // Load combined schema
         console.log('📄 Loading combined schema...');
         const combinedSchema = JSON.parse(fs.readFileSync(COMBINED_SCHEMA_PATH, 'utf8'));
         console.log(`   Found ${Object.keys(combinedSchema.schemas).length} schemas`);
         
-        // Collect all schemas and their $defs with deduplication by content
-        const allSchemasToProcess = new Map();
-        const deduplicationMap = new Map(); // Maps original name to canonical name
+        // Collect all unique type schemas and build rename map
+        const allTypes = new Map(); // Clean name -> schema
+        const renameMap = new Map(); // Original name -> clean name
+        const allDefs = {}; // All definitions for reference resolution
+        const typeOrigins = new Map(); // Clean name -> original root schema name
         
-        // Add main schemas
-        Object.entries(combinedSchema.schemas).forEach(([schemaName, schemaItem]) => {
-            const typeName = cleanTypeName(schemaName);
-            const schemaHash = createSchemaHash(schemaItem);
+        // Process all schemas and their definitions
+        for (const [schemaName, schema] of Object.entries(combinedSchema.schemas)) {
+            const cleanName = cleanTypeName(schemaName);
+            renameMap.set(schemaName, cleanName);
             
-            if (schemaHashes.has(schemaHash)) {
-                const existingTypeName = schemaHashes.get(schemaHash);
-                console.log(`   🔄 Found duplicate schema: ${typeName} -> ${existingTypeName}`);
-                deduplicationMap.set(schemaName, existingTypeName);
-            } else {
-                schemaHashes.set(schemaHash, typeName);
-                allSchemasToProcess.set(schemaName, schemaItem);
+            // Add main schema
+            if (!allTypes.has(cleanName)) {
+                const schemaCopy = { ...schema };
+                delete schemaCopy.$defs; // Remove nested defs from main schema
+                allTypes.set(cleanName, schemaCopy);
+                allDefs[cleanName] = schemaCopy;
+                typeOrigins.set(cleanName, cleanName); // Root schema originates from itself
+                // Also keep original name in allDefs for reference resolution
+                if (schemaName !== cleanName) {
+                    allDefs[schemaName] = schemaCopy;
+                }
             }
             
-            // Add $defs from this schema with deduplication
-            if (schemaItem.$defs) {
-                Object.entries(schemaItem.$defs).forEach(([defName, defItem]) => {
-                    const defTypeName = cleanTypeName(defName);
-                    const defHash = createSchemaHash(defItem);
+            // Process nested definitions
+            if (schema.$defs) {
+                for (const [defName, defSchema] of Object.entries(schema.$defs)) {
+                    const cleanDefName = cleanTypeName(defName);
+                    renameMap.set(defName, cleanDefName);
                     
-                    if (schemaHashes.has(defHash)) {
-                        const existingTypeName = schemaHashes.get(defHash);
-                        console.log(`   🔄 Found duplicate $def: ${defTypeName} -> ${existingTypeName}`);
-                        deduplicationMap.set(defName, existingTypeName);
-                    } else if (!allSchemasToProcess.has(defName)) {
-                        schemaHashes.set(defHash, defTypeName);
-                        allSchemasToProcess.set(defName, defItem);
+                    if (!allTypes.has(cleanDefName)) {
+                        allTypes.set(cleanDefName, defSchema);
+                        allDefs[cleanDefName] = defSchema;
+                        typeOrigins.set(cleanDefName, cleanName); // Track which root schema this came from
+                        // Also keep original name in allDefs for reference resolution
+                        if (defName !== cleanDefName) {
+                            allDefs[defName] = defSchema;
+                        }
                     }
-                });
+                }
             }
-        });
+        }
         
-        console.log(`   Found ${allSchemasToProcess.size} unique types to generate`);
+        console.log(`   Found ${allTypes.size} unique types to generate`);
         
-        // Process all schemas (main + defs) individually but with deduplication
-        for (const [schemaName, schemaItem] of allSchemasToProcess) {
+        // Add all possible Serializable* references to rename map
+        for (const key of Object.keys(allDefs)) {
+            renameMap.set(`Serializable${key}`, key);
+        }
+        
+        // Generate TypeScript for each type
+        const typeDefinitions = [];
+        const processedTypes = new Set();
+        
+        for (const [typeName, schema] of allTypes) {
+            if (processedTypes.has(typeName)) continue;
+            
             try {
-                console.log(`📄 Processing ${schemaName}...`);
+                console.log(`📄 Processing ${typeName}...`);
                 
-                const typeName = cleanTypeName(schemaName);
-                
-                // Skip if we've already generated this type (deduplication)
-                if (generatedTypes.has(typeName)) {
-                    console.log(`   ↳ Skipping duplicate type: ${typeName}`);
-                    continue;
+                // Fix all references in definitions
+                // For each $def, use its own name when fixing self-references
+                const fixedDefs = {};
+                for (const [defName, defSchema] of Object.entries(allDefs)) {
+                    fixedDefs[defName] = fixReferences(defSchema, renameMap, defName);
                 }
                 
-                // Create standalone schema with all dependencies  
-                const standaloneSchema = {
-                    ...schemaItem,
-                    title: typeName,
-                    $defs: {}
+                // Create a schema with this type and all dependencies
+                const typeSchema = {
+                    ...fixReferences(schema, renameMap, typeName),
+                    title: typeName, // Force the type name
+                    $defs: fixedDefs
                 };
                 
-                // Add all unique schemas to $defs for reference resolution
-                // Only add schemas that are different from the current one being processed
-                allSchemasToProcess.forEach((item, name) => {
-                    const cleanName = cleanTypeName(name);
-                    
-                    // Skip adding the current schema to its own $defs to avoid duplication
-                    if (cleanName === typeName) {
-                        return;
-                    }
-                    
-                    standaloneSchema.$defs[cleanName] = {
-                        ...item,
-                        title: cleanName
-                    };
-                    
-                    // Also keep original name for backward compatibility
-                    standaloneSchema.$defs[name] = {
-                        ...item,
-                        title: cleanName
-                    };
-                    
-                    // Add nested $defs if they exist
-                    if (item.$defs) {
-                        Object.assign(standaloneSchema.$defs, item.$defs);
-                    }
-                });
-                
-                // Write temporary schema file
-                const tempSchemaPath = path.join(OUTPUT_DIR, `temp_${schemaName}.json`);
-                fs.writeFileSync(tempSchemaPath, JSON.stringify(standaloneSchema, null, 2), 'utf8');
-                tempFiles.push(tempSchemaPath);
-                
-                // Generate TypeScript interface from file
-                let tsInterface = await compileFromFile(tempSchemaPath, {
+                // Generate TypeScript
+                let ts = await compile(typeSchema, typeName, {
                     bannerComment: '',
                     style: {
                         bracketSpacing: true,
-                        printWidth: 100,
+                        printWidth: 120,
                         semi: true,
                         singleQuote: true,
                         tabWidth: 2,
                         trailingComma: 'es5',
                         useTabs: false,
                     },
-                    unreachableDefinitions: true,
+                    unreachableDefinitions: false,
                     declareExternallyReferenced: false,
                     enableConstEnums: false,
                     ignoreMinAndMaxItems: true,
-                    additionalProperties: false, // This removes [k: string]: unknown
+                    additionalProperties: false,
+                    unknownAny: false,
                 });
                 
-                // Clean up the generated interface
-                tsInterface = tsInterface
-                    .replace(/export interface /g, 'interface ')
-                    .replace(/export type /g, 'type ')
-                    .split('\n')
-                    .filter(line => !line.trim().startsWith('export '))
-                    .join('\n')
-                    .replace(/\/\*\*[\s\S]*?\*\//g, '') // Remove JSDoc comments
-                    .replace(/\n\s*\n\s*\n/g, '\n\n') // Clean up extra newlines
-                    .replace(/Serializable([A-Z][a-zA-Z]*)/g, '$1') // Remove "Serializable" prefix from type references
-                    .replace(/\[k: string\]: unknown;\s*/g, '') // Remove [k: string]: unknown
-                    .trim();
+                // Replace any remaining Serializable* type references
+                ts = ts.replace(/Serializable([A-Z]\w*)/g, '$1');
                 
-                // Special handling for EitherTermOrId to rename the Term variant to avoid conflicts
-                if (typeName === 'EitherTermOrId') {
-                    // Rename the second Term definition to TermWithType to avoid duplication
-                    const lines = tsInterface.split('\n');
-                    let foundFirstTerm = false;
-                    for (let i = 0; i < lines.length; i++) {
-                        if (lines[i].includes('type Term = {')) {
-                            if (foundFirstTerm) {
-                                lines[i] = lines[i].replace('type Term = {', 'type TermWithType = {');
-                            } else {
-                                foundFirstTerm = true;
-                            }
-                        } else if (lines[i].includes('| Term')) {
-                            if (foundFirstTerm) {
-                                lines[i] = lines[i].replace('| Term', '| TermWithType');
-                            }
-                        }
-                    }
-                    tsInterface = lines.join('\n');
+                // Fix TypeName1 conflicts caused by $defs containing the same type name
+                // When json-schema-to-typescript sees a type in $defs with the same name as the root,
+                // it adds a "1" suffix. We need to remove this suffix.
+                for (const defName of Object.keys(allDefs)) {
+                    const regex = new RegExp(`\\b${defName}1\\b`, 'g');
+                    ts = ts.replace(regex, defName);
                 }
                 
-                // Determine if this is a root type or dependent type
-                const isRootType = ROOT_SCHEMAS.map(s => cleanTypeName(s)).includes(typeName);
+                // Fix tuple types that were generated as any[][]
+                // json-schema-to-typescript doesn't handle prefixItems (tuples) well
+                ts = fixTupleTypes(ts);
                 
-                if (isRootType) {
-                    console.log(`   ✅ Generated root type: ${typeName}`);
+                // Extract just the type definition for this type
+                const typeDef = extractTypeDefinition(ts, typeName);
+                
+                if (typeDef) {
+                    typeDefinitions.push(typeDef);
+                    processedTypes.add(typeName);
+                    
+                    // Determine if this is a root type
+                    const isRootType = ROOT_SCHEMAS.map(s => cleanTypeName(s)).includes(typeName);
+                    console.log(isRootType ? `   ✅ Generated root type: ${typeName}` : `   ✅ Generated type: ${typeName}`);
                 } else {
-                    console.log(`   ✅ Generated dependent type: ${typeName}`);
+                    console.log(`   ⚠️  Could not extract type definition for ${typeName}`);
                 }
-                
-                typeDefinitions.push(tsInterface);
-                typeDefinitions.push(''); // Empty line for readability
-                
-                generatedTypes.add(typeName);
                 
             } catch (error) {
-                console.error(`❌ Error processing ${schemaName}:`, error.message);
-                
-                // Create fallback type
-                const typeName = cleanTypeName(schemaName);
-                if (!generatedTypes.has(typeName)) {
-                    typeDefinitions.push(`// === ${typeName} (Error Fallback) ===`);
-                    typeDefinitions.push(`interface ${typeName} {
-  [key: string]: unknown;
-}
-`);
-                    typeDefinitions.push('');
-                    generatedTypes.add(typeName);
-                    console.log(`   🔄 Created fallback type: ${typeName}`);
-                }
+                console.error(`   ❌ Failed to generate ${typeName}: ${error.message}`);
             }
         }
         
-        // Add common utility types
-        typeDefinitions.push(`// === Utility Types ===
-type TransactionHash = string;
-type ScriptHash = string;
-type Address = string;
-type AssetName = string;
-type PolicyId = string;
-`);
+        console.log(`\n   Total: ${processedTypes.size} types generated`);
         
-        // Add exports at the end
-        typeDefinitions.push('// === Exports ===');
-        const exportList = Array.from(generatedTypes).sort();
-        exportList.forEach(typeName => {
-            typeDefinitions.push(`export type { ${typeName} };`);
+        // Sort types alphabetically
+        typeDefinitions.sort((a, b) => {
+            const nameA = a.match(/^(type|interface)\s+(\w+)/)?.[2] || '';
+            const nameB = b.match(/^(type|interface)\s+(\w+)/)?.[2] || '';
+            return nameA.localeCompare(nameB);
         });
         
-        // Add utility type exports
-        typeDefinitions.push('export type { TransactionHash, ScriptHash, Address, AssetName, PolicyId };');
+        // Build the final output
+        const output = [
+            '// Auto-generated TypeScript types from Rust JSON schemas',
+            '// Generated by scripts/generate-types.js',
+            '',
+            ...typeDefinitions,
+            '',
+            '// Utility type aliases',
+            'type TransactionHash = string;',
+            'type ScriptHash = string;',
+            'type Address = string;',
+            'type AssetName = string;',
+            'type PolicyId = string;',
+            '',
+            '// Exports',
+            ...Array.from(processedTypes).sort().map(name => `export type { ${name} };`),
+            'export type { TransactionHash, ScriptHash, Address, AssetName, PolicyId };',
+            ''
+        ].join('\n\n');
         
-        // Write the combined types file and post-process to fix duplicates
-        let finalContent = typeDefinitions.join('\n');
+        // Write the final file
+        fs.writeFileSync(path.join(OUTPUT_DIR, 'index.ts'), output, 'utf8');
         
-        // Fix duplicate Term types and Term1 references
-        const lines = finalContent.split('\n');
-        let inSecondTermDef = false;
-        let termDefCount = 0;
+        console.log(`\n✅ Successfully generated ${processedTypes.size} types!`);
+        console.log(`📁 Output written to: ${path.join(OUTPUT_DIR, 'index.ts')}`);
         
-        for (let i = 0; i < lines.length; i++) {
-            // Count Term definitions (both forms: "type Term =" and "type Term = {")
-            if (lines[i].startsWith('type Term =')) {
-                termDefCount++;
-                if (termDefCount === 2) {
-                    // This is the second Term definition - rename it
-                    lines[i] = lines[i].replace('type Term =', 'type TermWithType =');
-                    inSecondTermDef = true;
-                }
-            }
-            
-            // If we're in the second term definition, keep track of when it ends
-            if (inSecondTermDef && lines[i].trim() === ');') {
-                inSecondTermDef = false;
-            }
-            
-            // Replace Term1 references with TermWithType
-            if (lines[i].includes('Term1')) {
-                lines[i] = lines[i].replace(/Term1/g, 'TermWithType');
-            }
-            
-            // Update EitherTermOrId to use TermWithType instead of Term for the tagged variant
-            if (lines[i].includes('type EitherTermOrId =')) {
-                // Find the next line with | Term and replace it
-                for (let j = i + 1; j < lines.length && j < i + 5; j++) {
-                    if (lines[j].includes('| Term') && termDefCount >= 2) {
-                        lines[j] = lines[j].replace('| Term', '| TermWithType');
-                        break;
-                    }
-                }
+        // Verify root types
+        console.log('\n📋 Root types:');
+        for (const schema of ROOT_SCHEMAS) {
+            const cleanName = cleanTypeName(schema);
+            if (processedTypes.has(cleanName)) {
+                console.log(`   ✓ ${cleanName}`);
+            } else {
+                console.log(`   ✗ ${cleanName} (missing)`);
             }
         }
         
-        finalContent = lines.join('\n');
-        
-        // Add TermWithType to exports if we renamed the second Term
-        if (termDefCount >= 2) {
-            const exportIndex = finalContent.indexOf('export type { Term };');
-            if (exportIndex !== -1) {
-                finalContent = finalContent.replace(
-                    'export type { Term };',
-                    'export type { Term };\nexport type { TermWithType };'
-                );
-            }
-        }
-        
-        fs.writeFileSync(OUTPUT_FILE, finalContent, 'utf8');
-        
-        console.log('');
-        console.log('✨ TypeScript type generation completed!');
-        console.log(`📁 Output: ${OUTPUT_FILE}`);
-        console.log(`🔢 Generated ${generatedTypes.size} unique types:`);
-        exportList.forEach(type => console.log(`   - ${type}`));
-        console.log('');
-        console.log('💡 Import types in your code:');
-        console.log(`   import type { ${exportList.slice(0, 3).join(', ')} } from './debugger-types';`);
-        
-    } finally {
-        // Clean up temporary files
-        tempFiles.forEach(file => {
-            try {
-                if (fs.existsSync(file)) {
-                    fs.unlinkSync(file);
-                }
-            } catch (error) {
-                console.warn(`⚠️  Could not delete temp file: ${file}`);
-            }
-        });
+    } catch (error) {
+        console.error('❌ Failed to generate types:', error);
+        process.exit(1);
     }
 }
 
-// Run the script
-if (require.main === module) {
-    generateTypes().catch(error => {
-        console.error('❌ Failed to generate types:', error);
-        process.exit(1);
-    });
-}
-
-module.exports = { generateTypes }; 
+// Run the generator
+generateTypes().catch(console.error);

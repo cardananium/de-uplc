@@ -33,3 +33,6 @@ rust-src/target/
 rust-src/pkg/
 
 temp/
+
+# Temporary files from type generation
+src/debugger-types/temp_*.json

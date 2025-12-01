@@ -10,6 +10,7 @@ pub mod debugger_engine;
 pub mod budget;
 pub mod wasm_tools;
 pub mod tx_utils;
+pub mod lazy_loading;
 
 #[cfg(test)]
 mod tests;

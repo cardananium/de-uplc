@@ -3,6 +3,11 @@
   "displayName": "de-uplc",
   "description": "Debugger for UPLC (Untyped Plutus Core) language.",
   "version": "0.0.1",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cardananium/de-uplc.git"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -155,6 +160,12 @@
         "icon": "$(arrow-circle-right)"
       },
       {
+        "command": "uplcTree.reloadLazyNode",
+        "title": "Load Full Data",
+        "icon": "$(sync)",
+        "category": "UPLC Tree"
+      },
+      {
         "command": "extension.startSession",
         "title": "Start (Simulated) Session"
       },
@@ -188,7 +199,7 @@
         {
           "type": "webview",
           "id": "additionalControlsView",
-          "name": "Additional Controls",
+          "name": "Transaction",
           "initialSize": "100px"
         },
         {
@@ -234,6 +245,11 @@
           "command": "uplcTree.showNodeInTab",
           "group": "inline",
           "when": "((view == machineContextTreeDataProvider || view == machineStateTreeDataProvider || view == environmentsTreeDataProvider) && viewItem == uplcNode) || (view == logsTreeDataProvider && viewItem == logEntry)"
+        },
+        {
+          "command": "uplcTree.reloadLazyNode",
+          "group": "inline",
+          "when": "(view == machineContextTreeDataProvider || view == machineStateTreeDataProvider || view == environmentsTreeDataProvider) && viewItem == uplcLazyNode"
         },
         {
           "command": "breakpointsTreeDataProvider.removeBreakpoint",

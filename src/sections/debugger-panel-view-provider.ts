@@ -37,7 +37,11 @@ export class DebuggerPanelViewProvider implements vscode.WebviewViewProvider {
   ): DebuggerPanelViewProvider {
     const provider = new DebuggerPanelViewProvider(context.extensionUri);
     context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider("debuggerPanelView", provider)
+      vscode.window.registerWebviewViewProvider("debuggerPanelView", provider, {
+        webviewOptions: {
+          retainContextWhenHidden: true
+        }
+      })
     );
     return provider;
   }
