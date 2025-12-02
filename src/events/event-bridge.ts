@@ -147,6 +147,7 @@ export class EventBridge {
         async (message: string) => {
           this.logDebugMessage(`Event: DEBUGGER_CAUGHT_ERROR with message: ${message}`);
           await this.presentExecutionResult(message);
+          await this.clearSessionSpecificFields();
           this.debuggerPanelViewProvider.setDebuggerState("stopped");
           this.debuggerPanelViewProvider.unlockInterface();
         }
@@ -161,6 +162,7 @@ export class EventBridge {
           if (term) {
             await this.presentFinishedResult(term);
           }
+          await this.clearSessionSpecificFields();
           this.debuggerPanelViewProvider.setDebuggerState("stopped");
           this.debuggerPanelViewProvider.unlockInterface();
         }
