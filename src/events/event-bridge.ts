@@ -214,14 +214,23 @@ export class EventBridge {
           await this.currentSession?.stop();
           await this.tabManager.closeAll();
           await this.debuggerManager.terminateDebugging();
-          await this.debuggerManager.openTransaction(script);
-          this.debuggerPanelViewProvider.setRedeemers(
-            await this.debuggerManager.getRedeemers(),
-            await this.debuggerManager.getTransactionId()
-          );
-          this.currentSession = undefined;
-          this.clearSessionSpecificFields();
-          this.debuggerPanelViewProvider.unlockInterface();
+          try {
+            await this.debuggerManager.openTransaction(script);
+            this.debuggerPanelViewProvider.setRedeemers(
+              await this.debuggerManager.getRedeemers(),
+              await this.debuggerManager.getTransactionId()
+            );
+            this.currentSession = undefined;
+            this.clearSessionSpecificFields();
+          } catch (error) {
+            // Reset panel to empty state on error to avoid showing stale data
+            this.debuggerPanelViewProvider.resetToInitialState();
+            this.currentSession = undefined;
+            await this.clearSessionSpecificFields();
+            throw error; // Re-throw to let the caller (additional-controls-view-provider) show the error message
+          } finally {
+            this.debuggerPanelViewProvider.unlockInterface();
+          }
         }
       )
     );
