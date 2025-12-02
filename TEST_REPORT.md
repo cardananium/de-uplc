@@ -26,7 +26,7 @@
 |-------|-------|
 | **Description** | Open transaction in plain hex format |
 | **Preconditions** | Extension installed, data provider configured |
-| **Steps** | 1. Click "Open transaction" button (📂) in DE-UPLC panel<br>2. Select hex transaction file |
+| **Steps** | 1. Click "Open transaction" button  in DE-UPLC panel<br>2. Select hex transaction file |
 | **Expected Result** | Transaction loaded, redeemer list displayed in panel |
 | **Status** | ✅ |
 
@@ -35,7 +35,7 @@
 |-------|-------|
 | **Description** | Open transaction in JSON format with UTXOs and protocol params |
 | **Preconditions** | Extension installed |
-| **Steps** | 1. Click "Open transaction" button (📂) in DE-UPLC panel<br>2. Select JSON file with transaction, utxos, protocolParams |
+| **Steps** | 1. Click "Open transaction" button  in DE-UPLC panel<br>2. Select JSON file with transaction, utxos, protocolParams |
 | **Expected Result** | Transaction loaded without external provider calls |
 | **Status** | ✅ |
 
@@ -44,7 +44,7 @@
 |-------|-------|
 | **Description** | Attempt to open invalid file |
 | **Preconditions** | Extension installed |
-| **Steps** | 1. Click "Open transaction" button (📂) in DE-UPLC panel<br>2. Select file with invalid data |
+| **Steps** | 1. Click "Open transaction" button  in DE-UPLC panel<br>2. Select file with invalid data |
 | **Expected Result** | Clear error message displayed |
 | **Status** | ✅ |
 
@@ -373,7 +373,7 @@
 |-------|-------|
 | **Description** | Load UTXOs and protocol params via Koios |
 | **Preconditions** | Internet available, default settings |
-| **Steps** | 1. Click "Open transaction" button (📂)<br>2. Select hex transaction file |
+| **Steps** | 1. Click "Open transaction" button <br>2. Select hex transaction file |
 | **Expected Result** | UTXOs and protocol params loaded automatically |
 | **Status** | ✅ |
 
@@ -382,7 +382,7 @@
 |-------|-------|
 | **Description** | Use Koios API with API key |
 | **Preconditions** | Have Koios API key |
-| **Steps** | 1. In settings set `deuplc.providers.koios.apiKey`<br>2. Click "Open transaction" button (📂) and select hex file |
+| **Steps** | 1. In settings set `deuplc.providers.koios.apiKey`<br>2. Click "Open transaction" button  and select hex file |
 | **Expected Result** | Requests made using API key |
 | **Status** | ✅ |
 
@@ -391,7 +391,7 @@
 |-------|-------|
 | **Description** | Check timeout setting |
 | **Preconditions** | Slow or unstable network |
-| **Steps** | 1. In settings set `deuplc.providers.timeout` = 5000<br>2. Click "Open transaction" button (📂) and select hex file |
+| **Steps** | 1. In settings set `deuplc.providers.timeout` = 5000<br>2. Click "Open transaction" button  and select hex file |
 | **Expected Result** | Error displayed on timeout |
 | **Status** | ✅ |
 
@@ -400,7 +400,7 @@
 |-------|-------|
 | **Description** | Check retry attempts on network error |
 | **Preconditions** | Unstable network |
-| **Steps** | 1. In settings set `deuplc.providers.retryAttempts` = 3<br>2. Click "Open transaction" button (📂) and select hex file with unstable network |
+| **Steps** | 1. In settings set `deuplc.providers.retryAttempts` = 3<br>2. Click "Open transaction" button  and select hex file with unstable network |
 | **Expected Result** | Retries performed on error |
 | **Status** | ✅ |
 
@@ -409,7 +409,7 @@
 |-------|-------|
 | **Description** | Enable offline provider |
 | **Preconditions** | Have JSON file with UTXOs and protocol params |
-| **Steps** | 1. In settings set `deuplc.providers.offline.enabled` = true<br>2. In settings set `deuplc.providers.offline.filePath` to JSON file<br>3. Click "Open transaction" button (📂) and select hex file |
+| **Steps** | 1. In settings set `deuplc.providers.offline.enabled` = true<br>2. In settings set `deuplc.providers.offline.filePath` to JSON file<br>3. Click "Open transaction" button  and select hex file |
 | **Expected Result** | Data loaded from local file |
 | **Status** | ✅ |
 
@@ -418,7 +418,7 @@
 |-------|-------|
 | **Description** | Specify non-existent file for offline provider |
 | **Preconditions** | Offline provider enabled |
-| **Steps** | 1. In settings set `deuplc.providers.offline.filePath` to non-existent file<br>2. Click "Open transaction" button (📂) and select hex file |
+| **Steps** | 1. In settings set `deuplc.providers.offline.filePath` to non-existent file<br>2. Click "Open transaction" button  and select hex file |
 | **Expected Result** | Clear error about unable to read file |
 | **Status** | ✅ |
 
@@ -427,7 +427,7 @@
 |-------|-------|
 | **Description** | Specify file with invalid JSON |
 | **Preconditions** | Offline provider enabled |
-| **Steps** | 1. In settings specify file with invalid JSON<br>2. Click "Open transaction" button (📂) and select hex file |
+| **Steps** | 1. In settings specify file with invalid JSON<br>2. Click "Open transaction" button  and select hex file |
 | **Expected Result** | Parse error displayed |
 | **Status** | ✅ |
 
@@ -449,7 +449,7 @@
 |-------|-------|
 | **Description** | Open new transaction when session active |
 | **Preconditions** | Session running or paused |
-| **Steps** | 1. Click "Open transaction" button (📂) and select new file |
+| **Steps** | 1. Click "Open transaction" button  and select new file |
 | **Expected Result** | Current session stops, all tabs close, new transaction loads |
 | **Status** | ✅ |
 
@@ -467,7 +467,7 @@
 |-------|-------|
 | **Description** | Open transaction without Plutus scripts |
 | **Preconditions** | Transaction contains no redeemers |
-| **Steps** | 1. Click "Open transaction" button (📂) and select such transaction |
+| **Steps** | 1. Click "Open transaction" button  and select such transaction |
 | **Expected Result** | "No redeemers available" message displayed |
 | **Status** | ✅ |
 
