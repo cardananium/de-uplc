@@ -5,6 +5,7 @@ export interface DataProviderConfig {
   apiKey?: string;
   timeout?: number;
   retryAttempts?: number;
+  customEndpoint?: string;
 }
 
 export interface DataProvider {

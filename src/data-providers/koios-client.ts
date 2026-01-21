@@ -28,11 +28,13 @@ export class KoiosClient implements DataProvider {
   private readonly apiKey?: string;
   private readonly timeout: number;
   private readonly retryAttempts: number;
+  private readonly customEndpoint?: string;
 
   constructor(config: DataProviderConfig) {
     this.apiKey = config.apiKey;
     this.timeout = config.timeout || 30000; // 30 seconds by default
     this.retryAttempts = config.retryAttempts || 3;
+    this.customEndpoint = config.customEndpoint;
   }
 
   getProviderName(): string {
@@ -85,7 +87,9 @@ export class KoiosClient implements DataProvider {
     body?: any,
     queryParams?: KoiosQueryParams
   ): Promise<T> {
-    const url = new URL(`${KOIOS_ENDPOINTS[network]}/api/v1${endpoint}`);
+    // Use custom endpoint if provided, otherwise use network-based endpoint
+    const baseUrl = this.customEndpoint || KOIOS_ENDPOINTS[network];
+    const url = new URL(`${baseUrl}/api/v1${endpoint}`);
     
     // Add query parameters if they exist
     if (queryParams) {
