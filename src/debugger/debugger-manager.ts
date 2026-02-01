@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SessionController } from './session-controller';
 import { IDebuggerEngine } from './debugger-engine.interface';
 import { DataProvider } from '../data-providers/data-provider.interface';
-import { getOnlineProvider, getOfflineDataProvider } from '../data-providers';
+import { getOnlineProvider, getOfflineDataProvider, KoiosClient } from '../data-providers';
 import { DebuggerContext, Network, UtxoOutput, UtxoReference, ProtocolParameters } from '../common';
 import { EventEmitter } from '../events/event-emitter';
 import { ExecutionStatus, Term } from '../debugger-types';
@@ -89,6 +89,7 @@ export class DebuggerManager {
                         utxos: parsed.utxos,
                         protocolParams: parsed.protocolParams,
                         network: parsed.network,
+                        customEndpoint: parsed.customEndpoint,
                         transaction: parsed.transaction
                     } as DebuggerContext;
                 }
@@ -136,7 +137,12 @@ export class DebuggerManager {
         // Ensure network is selected before fetching any network-dependent data
         if (!filledContext.network) {
             const selected = await vscode.window.showQuickPick(
-                ['mainnet', 'preprod', 'preview'],
+                [
+                    { label: 'mainnet', description: 'Cardano Mainnet' },
+                    { label: 'preprod', description: 'Preprod Testnet' },
+                    { label: 'preview', description: 'Preview Testnet' },
+                    { label: 'Custom URL...', description: 'Enter a custom Koios endpoint URL' }
+                ],
                 {
                     title: 'Select Network',
                     placeHolder: 'Choose the network to use for fetching UTXOs and protocol parameters',
@@ -150,7 +156,41 @@ export class DebuggerManager {
                 throw new Error('Network selection cancelled by user');
             }
 
-            filledContext.network = selected as Network;
+            if (selected.label === 'Custom URL...') {
+                // Prompt user for custom Koios URL
+                const customUrl = await vscode.window.showInputBox({
+                    title: 'Enter Custom Koios URL',
+                    placeHolder: 'https://your-koios-instance.com',
+                    prompt: 'Enter the base URL of your Koios instance (without /api/v1)',
+                    ignoreFocusOut: true,
+                    validateInput: (value) => {
+                        if (!value || value.trim().length === 0) {
+                            return 'URL cannot be empty';
+                        }
+                        try {
+                            const url = new URL(value);
+                            if (!['http:', 'https:'].includes(url.protocol)) {
+                                return 'URL must use http:// or https://';
+                            }
+                            return null;
+                        } catch {
+                            return 'Invalid URL format';
+                        }
+                    }
+                });
+
+                if (!customUrl) {
+                    await vscode.window.showErrorMessage('Custom URL is required to proceed.', { modal: true });
+                    throw new Error('Custom URL input cancelled by user');
+                }
+
+                // Store custom endpoint and use a default network for slot config
+                // We'll use 'mainnet' as default, but the actual endpoint will be custom
+                filledContext.network = 'mainnet';
+                filledContext.customEndpoint = customUrl.trim();
+            } else {
+                filledContext.network = selected.label as Network;
+            }
         }
 
         const network: Network = filledContext.network as Network;
@@ -160,7 +200,7 @@ export class DebuggerManager {
             try {
                 const requiredUtxos = await this.debuggerEngine.getRequiredUtxos(context.transaction);
                 if (requiredUtxos.length > 0) {
-                    filledContext.utxos = await this.fetchUtxos(requiredUtxos, network);
+                    filledContext.utxos = await this.fetchUtxos(requiredUtxos, network, filledContext.customEndpoint);
                     
                     // Check if all required UTXOs were fetched
                     const fetchedUtxos = filledContext.utxos;
@@ -181,7 +221,7 @@ export class DebuggerManager {
         // Fill protocol parameters if missing
         if (!filledContext.protocolParams) {
             try {
-                filledContext.protocolParams = await this.fetchProtocolParameters(network);
+                filledContext.protocolParams = await this.fetchProtocolParameters(network, filledContext.customEndpoint);
                 if (!filledContext.protocolParams) {
                     throw new Error('Protocol parameters are required but could not be fetched from any provider');
                 }
@@ -197,8 +237,9 @@ export class DebuggerManager {
     /**
      * Fetches UTXOs with fallback: offline provider first, then koios provider
      */
-    private async fetchUtxos(requiredUtxos: UtxoReference[], network: Network): Promise<UtxoOutput[]> {
-        const dataProvider = getOnlineProvider();
+    private async fetchUtxos(requiredUtxos: UtxoReference[], network: Network, customEndpoint?: string): Promise<UtxoOutput[]> {
+        // Create provider with custom endpoint if provided
+        const dataProvider = customEndpoint ? this.createKoiosProviderWithCustomEndpoint(customEndpoint) : getOnlineProvider();
         const offlineDataProvider = getOfflineDataProvider();
         let utxos: UtxoOutput[] = [];
         let missingUtxos = [...requiredUtxos];
@@ -229,8 +270,9 @@ export class DebuggerManager {
     /**
      * Fetches protocol parameters with fallback: offline provider first, then koios provider
      */
-    private async fetchProtocolParameters(network: Network): Promise<ProtocolParameters | undefined> {
-        const dataProvider = getOnlineProvider();
+    private async fetchProtocolParameters(network: Network, customEndpoint?: string): Promise<ProtocolParameters | undefined> {
+        // Create provider with custom endpoint if provided
+        const dataProvider = customEndpoint ? this.createKoiosProviderWithCustomEndpoint(customEndpoint) : getOnlineProvider();
         const offlineDataProvider = getOfflineDataProvider();
 
         // Try offline provider first
@@ -247,5 +289,22 @@ export class DebuggerManager {
             console.warn('Koios provider failed to fetch protocol parameters:', error);
             return undefined;
         }
+    }
+
+    /**
+     * Creates a KoiosClient instance with a custom endpoint
+     */
+    private createKoiosProviderWithCustomEndpoint(customEndpoint: string): DataProvider {
+        const cfg = vscode.workspace.getConfiguration('deuplc.providers');
+        const apiKey = cfg.get<string>('koios.apiKey') || undefined;
+        const timeout = cfg.get<number>('timeout') ?? 30000;
+        const retryAttempts = cfg.get<number>('retryAttempts') ?? 3;
+        
+        return new KoiosClient({
+            apiKey,
+            timeout,
+            retryAttempts,
+            customEndpoint,
+        });
     }
 }

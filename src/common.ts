@@ -24,6 +24,7 @@ export interface DebuggerContext {
     utxos: UtxoOutput[] | undefined;
     protocolParams: ProtocolParameters | undefined;
     network: Network | undefined;
+    customEndpoint?: string;
     transaction: string;
   }
   
