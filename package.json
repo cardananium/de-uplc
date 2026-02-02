@@ -2,7 +2,7 @@
   "name": "de-uplc",
   "displayName": "de-uplc",
   "description": "Debugger for UPLC (Untyped Plutus Core) language.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
