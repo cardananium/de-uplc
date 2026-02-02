@@ -21,6 +21,12 @@ pub enum SerializableExecutionStatus {
     Error { message: String },
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct StepResult {
+    pub term_id: i32,
+    pub status: SerializableExecutionStatus,
+}
+
 impl From<uplc::manual_machine::ExecutionStatus> for SerializableExecutionStatus {
     fn from(status: uplc::manual_machine::ExecutionStatus) -> Self {
         match status {

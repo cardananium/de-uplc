@@ -41,6 +41,8 @@ export class EventBridge {
         DebuggerControlEventNames.START_DEBUGGING,
         async (redeemer: string) => {
           this.logDebugMessage(`Event: START_DEBUGGING with redeemer: ${redeemer}`);
+          this.tabManager.clearFinishedHighlight();
+          this.tabManager.clearErrorHighlight();
           const currentSession = await this.debuggerManager.initDebugSession(
             redeemer
           );
@@ -51,7 +53,6 @@ export class EventBridge {
           this.currentSession = currentSession;
           this.debuggerPanelViewProvider.setDebuggerState("running");
           await currentSession.start();
-          // this.fillSessionSpecificFields();
           this.debuggerPanelViewProvider.unlockInterface();
         }
       )
@@ -144,8 +145,11 @@ export class EventBridge {
     this.context.subscriptions.push(
       vscode.commands.registerCommand(
         DebuggerControlEventNames.DEBUGGER_CAUGHT_ERROR,
-        async (message: string) => {
-          this.logDebugMessage(`Event: DEBUGGER_CAUGHT_ERROR with message: ${message}`);
+        async (message: string, termId: number) => {
+          this.logDebugMessage(`Event: DEBUGGER_CAUGHT_ERROR with message: ${message}, termId: ${termId}`);
+          if (termId !== undefined && termId >= 0) {
+            await this.tabManager.highlightErrorLine(termId);
+          }
           await this.presentExecutionResult(message);
           await this.clearSessionSpecificFields();
           this.debuggerPanelViewProvider.setDebuggerState("stopped");
@@ -157,8 +161,11 @@ export class EventBridge {
     this.context.subscriptions.push(
       vscode.commands.registerCommand(
         DebuggerControlEventNames.DEBUGGER_CAUGHT_FINISHED,
-        async (term: Term) => {
-          this.logDebugMessage(`Event: DEBUGGER_CAUGHT_FINISHED`);
+        async (term: Term, termId: number) => {
+          this.logDebugMessage(`Event: DEBUGGER_CAUGHT_FINISHED at termId: ${termId}`);
+          if (termId !== undefined && termId >= 0) {
+            await this.tabManager.highlightFinishedLine(termId);
+          }
           if (term) {
             await this.presentFinishedResult(term);
           }

@@ -40,7 +40,7 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
   public onStop: (() => void) | undefined;
   public onPause: (() => void) | undefined;
   public onBreakpoint: ((termId: number) => void) | undefined;
-  public onExecutionComplete: ((result: ExecutionStatus) => void) | undefined;
+  public onExecutionComplete: ((result: ExecutionStatus, termId: number) => void) | undefined;
 
   constructor() {
     this.workerReadyPromise = new Promise(resolve => {
@@ -115,7 +115,11 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
         if (this.onBreakpoint) this.onBreakpoint(event.data);
         break;
       case 'executionComplete':
-        if (this.onExecutionComplete) this.onExecutionComplete(event.data);
+        // Note: event.data should be { status: ExecutionStatus, termId: number }
+        if (this.onExecutionComplete) {
+          const data = event.data as { status: ExecutionStatus; termId: number };
+          this.onExecutionComplete(data.status, data.termId);
+        }
         break;
     }
   }
@@ -269,7 +273,7 @@ export class WasmDebuggerEngineWorker implements IDebuggerEngine {
     onStop?: () => void;
     onPause?: () => void;
     onBreakpoint?: (termId: number) => void;
-    onExecutionComplete?: (result: ExecutionStatus) => void;
+    onExecutionComplete?: (result: ExecutionStatus, termId: number) => void;
   }): void {
     this.onStop = handlers.onStop;
     this.onPause = handlers.onPause;

@@ -1,11 +1,11 @@
 use de_uplc::{
-    // Root schemas returned from DebuggerEngine and SessionController public API
-    SerializableScriptContext,    // from get_tx_script_context()
-    SerializableMachineContext,          // from get_machine_context()
-    SerializableMachineState,     // from get_machine_state()
-    SerializableTerm,             // from get_script()
-    SerializableValue,            // from get_current_env()
-    SerializableExecutionStatus,  // from step()
+    SerializableScriptContext,
+    SerializableMachineContext,
+    SerializableMachineState,
+    SerializableTerm,
+    SerializableValue,
+    SerializableExecutionStatus,
+    StepResult,
 };
 use de_uplc::budget::SerializableBudget; // from get_budget()
 use de_uplc::machine_state::SerializableMachineStateLazy; // from get_machine_state_lazy()
@@ -105,6 +105,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let execution_status_schema = schema_for!(SerializableExecutionStatus);
     fs::write("schemas/SerializableExecutionStatus.json", serde_json::to_string_pretty(&execution_status_schema)?)?;
 
+    // 8. StepResult - returned from SessionController::step() (includes term_id and status)
+    let step_result_schema = schema_for!(StepResult);
+    fs::write("schemas/StepResult.json", serde_json::to_string_pretty(&step_result_schema)?)?;
+
     // Lazy versions - returned from lazy API methods
     let machine_state_lazy_schema = schema_for!(SerializableMachineStateLazy);
     fs::write("schemas/SerializableMachineStateLazy.json", serde_json::to_string_pretty(&machine_state_lazy_schema)?)?;
@@ -127,6 +131,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut term_json = serde_json::to_value(&term_schema)?;
     let mut value_json = serde_json::to_value(&value_schema)?;
     let mut execution_status_json = serde_json::to_value(&execution_status_schema)?;
+    let mut step_result_json = serde_json::to_value(&step_result_schema)?;
     let mut machine_state_lazy_json = serde_json::to_value(&machine_state_lazy_schema)?;
     let mut machine_context_lazy_json = serde_json::to_value(&machine_context_lazy_schema)?;
     let mut value_lazy_json = serde_json::to_value(&value_lazy_schema)?;
@@ -140,6 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fix_schema_and_defs(&mut term_json)?;
     fix_schema_and_defs(&mut value_json)?;
     fix_schema_and_defs(&mut execution_status_json)?;
+    fix_schema_and_defs(&mut step_result_json)?;
     fix_schema_and_defs(&mut machine_state_lazy_json)?;
     fix_schema_and_defs(&mut machine_context_lazy_json)?;
     fix_schema_and_defs(&mut value_lazy_json)?;
@@ -159,6 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "SerializableTerm": term_json,
             "SerializableValue": value_json,
             "SerializableExecutionStatus": execution_status_json,
+            "StepResult": step_result_json,
             "SerializableMachineStateLazy": machine_state_lazy_json,
             "SerializableMachineContextLazy": machine_context_lazy_json,
             "SerializableValueLazy": value_lazy_json,
@@ -176,12 +183,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  - SerializableBudget (from get_budget)");
     println!("  - SerializableTerm (from get_script)");
     println!("  - SerializableValue (from get_current_env)");
-    println!("  - SerializableExecutionStatus (from step)");
+    println!("  - SerializableExecutionStatus (status only)");
+    println!("  - StepResult (from step - includes term_id and status)");
     println!("  - SerializableMachineStateLazy (from get_machine_state_lazy)");
     println!("  - SerializableMachineContextLazy (from get_machine_context_lazy)");
     println!("  - SerializableValueLazy (from get_current_env_lazy)");
     println!("  - SerializableEnvLazy (from get_current_env_lazy)");
-    println!("  Total: 11 root schemas + 1 combined");
+    println!("  Total: 12 root schemas + 1 combined");
     println!();
     println!("Note: All dependent types are automatically included in the schema definitions.");
 

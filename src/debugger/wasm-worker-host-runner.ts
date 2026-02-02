@@ -286,7 +286,6 @@ const handlers: Record<string, (...args: any[]) => any> = {
     }
   },
 
-  // Simple step operation
   step: (_sessionId: string) => {
     if (!currentSession) {
       throw new Error('No active session. Call initDebugSession first.');
@@ -298,16 +297,14 @@ const handlers: Record<string, (...args: any[]) => any> = {
     }
   },
 
-  // New method for host-based execution: step and return status
   stepAndGetStatus: (_sessionId: string) => {
     if (!currentSession) {
       throw new Error('No active session. Call initDebugSession first.');
     }
     try {
-      const result = currentSession.step();
-      const termId = currentSession.get_current_term_id();
-      const transferable = createTransferableFromJson(result);
-      return { result: { termId, statusBuffer: transferable }, transferables: [transferable] };
+      const stepResultJson = currentSession.step();
+      const stepResult = JSON.parse(stepResultJson);
+      return { result: { termId: stepResult.term_id, status: stepResult.status }, transferables: [] };
     } catch (error) {
       throw new Error(`Failed to step and get status: ${error}`);
     }

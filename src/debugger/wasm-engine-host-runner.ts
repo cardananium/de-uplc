@@ -54,7 +54,7 @@ export class WasmEngineHostRunner implements IDebuggerEngine {
   public onStop: (() => void) | undefined;
   public onPause: (() => void) | undefined;
   public onBreakpoint: ((termId: number) => void) | undefined;
-  public onExecutionComplete: ((result: ExecutionStatus) => void) | undefined;
+  public onExecutionComplete: ((result: ExecutionStatus, termId: number) => void) | undefined;
 
   constructor() {
     this.initWorker();
@@ -103,15 +103,6 @@ export class WasmEngineHostRunner implements IDebuggerEngine {
             pending.resolve(parsedResult);
           } catch (error) {
             console.error('[Host] Failed to parse JSON from ArrayBuffer:', error);
-            pending.reject(new Error('Failed to parse worker response'));
-          }
-        } else if (response.result && typeof response.result === 'object' && 'statusBuffer' in response.result) {
-          try {
-            const { termId, statusBuffer } = response.result;
-            const status = parseJsonFromBuffer(statusBuffer);
-            pending.resolve({ termId, status });
-          } catch (error) {
-            console.error('[Host] Failed to parse status from ArrayBuffer:', error);
             pending.reject(new Error('Failed to parse worker response'));
           }
         } else {
@@ -380,7 +371,7 @@ export class WasmEngineHostRunner implements IDebuggerEngine {
             this.needStop = true;
 
             if (this.onExecutionComplete) {
-              this.onExecutionComplete(status);
+              this.onExecutionComplete(status, termId);
             }
             break;
           }
@@ -395,7 +386,7 @@ export class WasmEngineHostRunner implements IDebuggerEngine {
             this.onExecutionComplete({
               status_type: 'Error',
               message: error instanceof Error ? error.message : 'Unknown error',
-            });
+            }, -1);
           }
           break;
         }
@@ -413,7 +404,7 @@ export class WasmEngineHostRunner implements IDebuggerEngine {
     onStop?: () => void;
     onPause?: () => void;
     onBreakpoint?: (termId: number) => void;
-    onExecutionComplete?: (result: ExecutionStatus) => void;
+    onExecutionComplete?: (result: ExecutionStatus, termId: number) => void;
   }): void {
     this.onStop = handlers.onStop;
     this.onPause = handlers.onPause;

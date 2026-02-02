@@ -51,6 +51,22 @@ export class TabManager {
         return this.termViewer.clearDebuggerHighlight();
     }
 
+    public async highlightFinishedLine(termId: number) {
+        return await this.termViewer.highlightFinishedLine(termId);
+    }
+
+    public clearFinishedHighlight() {
+        return this.termViewer.clearFinishedHighlight();
+    }
+
+    public async highlightErrorLine(termId: number) {
+        return await this.termViewer.highlightErrorLine(termId);
+    }
+
+    public clearErrorHighlight() {
+        return this.termViewer.clearErrorHighlight();
+}
+
     public closeAll(): Thenable<unknown> {
         return Promise.all([
             this.termViewer.closeTab(),

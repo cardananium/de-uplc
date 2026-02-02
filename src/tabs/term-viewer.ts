@@ -195,6 +195,8 @@ export class TermViewerProvider {
         breakpointDisabled: vscode.TextEditorDecorationType;
         termHighlight: vscode.TextEditorDecorationType;
         debuggerLine: vscode.TextEditorDecorationType;
+        finishedLine: vscode.TextEditorDecorationType;
+        errorLine: vscode.TextEditorDecorationType;
     };
 
     private constructor(private readonly _context: vscode.ExtensionContext) {
@@ -236,6 +238,24 @@ export class TermViewerProvider {
                 after: {
                     contentText: ' // Debugger is paused here',
                     color: new vscode.ThemeColor('editorLineNumber.activeForeground'),
+                    margin: '0 0 0 1em'
+                }
+            }),
+            finishedLine: vscode.window.createTextEditorDecorationType({
+                backgroundColor: 'rgba(40, 167, 69, 0.3)',
+                isWholeLine: true,
+                after: {
+                    contentText: ' // Execution finished here',
+                    color: 'rgba(40, 167, 69, 0.8)',
+                    margin: '0 0 0 1em'
+                }
+            }),
+            errorLine: vscode.window.createTextEditorDecorationType({
+                backgroundColor: 'rgba(220, 53, 69, 0.3)',
+                isWholeLine: true,
+                after: {
+                    contentText: ' // Error occurred here',
+                    color: 'rgba(220, 53, 69, 0.8)',
                     margin: '0 0 0 1em'
                 }
             })
@@ -397,15 +417,12 @@ export class TermViewerProvider {
             return false;
         }
         
-        // Create a selection at the start of the term
-        const position = new vscode.Position(termLocation.startLine, 0);
+        const firstCharColumn = this.getFirstNonWhitespaceColumn(termLocation.startLine);
+        
+        const position = new vscode.Position(termLocation.startLine, firstCharColumn);
         this._currentEditor.selection = new vscode.Selection(position, position);
         
-        // Reveal the position in the editor
-        this._currentEditor.revealRange(
-            new vscode.Range(position, position),
-            vscode.TextEditorRevealType.InCenter
-        );
+        this.revealLine(termLocation.startLine);
         
         return true;
     }
@@ -1464,10 +1481,7 @@ export class TermViewerProvider {
 
         this._currentEditor!.setDecorations(this._decorationTypes.debuggerLine, [decoration]);
 
-        this._currentEditor!.revealRange(
-            new vscode.Range(termLocation.startLine, 0, termLocation.startLine, 0),
-            vscode.TextEditorRevealType.InCenter
-        );
+        this.revealLine(termLocation.startLine);
 
         return true;
     }
@@ -1476,6 +1490,82 @@ export class TermViewerProvider {
         this._currentDebuggerTermId = undefined;
         if (this._currentEditor) {
             this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, []);
+        }
+    }
+
+    public async highlightFinishedLine(termId: number): Promise<boolean> {
+        if (!this._currentEditor) {
+            const termViewerTab = await this.findAndActivateTermViewerTab();
+            if (!termViewerTab) {
+                return false;
+            }
+        }
+
+        this._currentEditor!.setDecorations(this._decorationTypes.debuggerLine, []);
+
+        const termLocations = this.getCurrentTermLocations();
+        const termLocation = termLocations.find(loc => loc.termId === termId);
+        if (!termLocation) {
+            return false;
+        }
+
+        const decoration: vscode.DecorationOptions = {
+            range: new vscode.Range(
+                termLocation.startLine,
+                0,
+                termLocation.startLine,
+                Number.MAX_VALUE
+            )
+        };
+
+        this._currentEditor!.setDecorations(this._decorationTypes.finishedLine, [decoration]);
+
+        this.revealLine(termLocation.startLine);
+
+        return true;
+    }
+
+    public clearFinishedHighlight(): void {
+        if (this._currentEditor) {
+            this._currentEditor.setDecorations(this._decorationTypes.finishedLine, []);
+        }
+    }
+
+    public async highlightErrorLine(termId: number): Promise<boolean> {
+        if (!this._currentEditor) {
+            const termViewerTab = await this.findAndActivateTermViewerTab();
+            if (!termViewerTab) {
+                return false;
+            }
+        }
+
+        this._currentEditor!.setDecorations(this._decorationTypes.debuggerLine, []);
+
+        const termLocations = this.getCurrentTermLocations();
+        const termLocation = termLocations.find(loc => loc.termId === termId);
+        if (!termLocation) {
+            return false;
+        }
+
+        const decoration: vscode.DecorationOptions = {
+            range: new vscode.Range(
+                termLocation.startLine,
+                0,
+                termLocation.startLine,
+                Number.MAX_VALUE
+            )
+        };
+
+        this._currentEditor!.setDecorations(this._decorationTypes.errorLine, [decoration]);
+
+        this.revealLine(termLocation.startLine);
+
+        return true;
+    }
+
+    public clearErrorHighlight(): void {
+        if (this._currentEditor) {
+            this._currentEditor.setDecorations(this._decorationTypes.errorLine, []);
         }
     }
 
@@ -1495,6 +1585,30 @@ export class TermViewerProvider {
                 this._currentEditor.setDecorations(this._decorationTypes.debuggerLine, [decoration]);
             }
         }
+    }
+
+    private getFirstNonWhitespaceColumn(line: number): number {
+        if (!this._currentEditor) {
+            return 0;
+        }
+        const lineText = this._currentEditor.document.lineAt(line).text;
+        const match = lineText.match(/\S/);
+        return match ? lineText.indexOf(match[0]) : 0;
+    }
+
+    private revealLine(line: number): void {
+        if (!this._currentEditor) {
+            return;
+        }
+        
+        const firstCharColumn = this.getFirstNonWhitespaceColumn(line);
+        const pos = new vscode.Position(line, firstCharColumn);
+        this._currentEditor.selection = new vscode.Selection(pos, pos);
+        
+        this._currentEditor.revealRange(
+            new vscode.Range(line, firstCharColumn, line, firstCharColumn),
+            vscode.TextEditorRevealType.InCenterIfOutsideViewport
+        );
     }
 
     public async focusOnTerm(termId: string | number): Promise<boolean> {
@@ -1521,18 +1635,18 @@ export class TermViewerProvider {
         }
 
         // Select only the first line of the term using regular text selection
+        const lineText = this._currentEditor!.document.lineAt(termLocation.startLine).text;
+        const firstCharColumn = this.getFirstNonWhitespaceColumn(termLocation.startLine);
+        
         const selection = new vscode.Selection(
             termLocation.startLine,
-            0,
+            firstCharColumn,
             termLocation.startLine,
-            this._currentEditor!.document.lineAt(termLocation.startLine).text.length
+            lineText.length
         );
 
         this._currentEditor!.selection = selection;
-        this._currentEditor!.revealRange(
-            selection,
-            vscode.TextEditorRevealType.InCenter
-        );
+        this.revealLine(termLocation.startLine);
 
         return true;
     }

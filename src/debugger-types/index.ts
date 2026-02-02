@@ -810,6 +810,11 @@ type StakeCredential =
       hash: string;
     };
 
+interface StepResult {
+  status: ExecutionStatus;
+  term_id: number;
+}
+
 type Term =
   | {
       id: number;
@@ -1274,6 +1279,8 @@ export type { ScriptPurpose };
 export type { ScriptRef };
 
 export type { StakeCredential };
+
+export type { StepResult };
 
 export type { Term };
 

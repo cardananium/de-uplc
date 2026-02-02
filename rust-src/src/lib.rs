@@ -79,6 +79,7 @@ pub use debugger_engine::{
     Budget,
     DebuggerError,
     SerializableExecutionStatus,
+    StepResult,
 };
 pub use wasm_tools::{
     JsError,

@@ -32,16 +32,16 @@ export class DebuggerManager {
             EventEmitter.debuggerCaughtBreakpoint(termId);
         };
 
-        engine.onExecutionComplete = (result: ExecutionStatus) => {
+        engine.onExecutionComplete = (result: ExecutionStatus, termId: number) => {
             if (result.status_type === 'Done') {
                 const term = (result as { status_type: 'Done'; result: Term }).result;
-                EventEmitter.debuggerCaughtFinished(term);
+                EventEmitter.debuggerCaughtFinished(term, termId);
             } else if (result.status_type === 'Error') {
                 const message = (result as { status_type: 'Error'; message: string }).message;
-                EventEmitter.debuggerCaughtError(message);
+                EventEmitter.debuggerCaughtError(message, termId);
             } else {
                 console.warn('[DebuggerManager] Unexpected execution status:', result);
-                EventEmitter.debuggerCaughtError(`Unexpected execution status: ${JSON.stringify(result)}`);
+                EventEmitter.debuggerCaughtError(`Unexpected execution status: ${JSON.stringify(result)}`, termId);
             }
         };
     }

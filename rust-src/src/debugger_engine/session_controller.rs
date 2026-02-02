@@ -243,16 +243,21 @@ impl SessionController {
             .map_err(|e| DebuggerError::MachineError(e.to_string()))?)
     }
 
-    fn step_inner(&mut self) -> Result<SerializableExecutionStatus, JsError> {
+    fn step_inner(&mut self) -> Result<super::StepResult, JsError> {
+        let term_id = self.get_current_term_id()?;
         self.version += 1;
         let status: &uplc::manual_machine::ExecutionStatus = self.machine.step();
         let serializable_status: SerializableExecutionStatus = status.into();
-        Ok(serializable_status)
+        
+        Ok(super::StepResult {
+            term_id,
+            status: serializable_status,
+        })
     }
 
     pub fn step(&mut self) -> Result<String, JsError> {
-        let status = self.step_inner()?;
-        Ok(serde_json::to_string(&status)
+        let result = self.step_inner()?;
+        Ok(serde_json::to_string(&result)
             .map_err(|e| DebuggerError::MachineError(e.to_string()))?)
     }
 

@@ -1022,7 +1022,7 @@ pub fn term_to_either_term_or_id_lazy(
         EitherTermOrIdLazy::Id { id: uniq_id }
     } else {
         let lazy_term = if config.return_full_object || config.path.is_empty() {
-            LazyLoadable::Loaded(from_uplc_term_lazy(term, term_ids, config))
+            LazyLoadable::Loaded(SerializableTermLazy::from_uplc_term_lazy(term, term_ids, config))
         } else {
             LazyLoadable::type_only(
                 "Term".to_string(),
@@ -1034,19 +1034,6 @@ pub fn term_to_either_term_or_id_lazy(
             LazyLoadable::Loaded(v) => LazyLoadableTerm::Loaded(v),
             LazyLoadable::TypeOnly { type_name, kind, length } => LazyLoadableTerm::TypeOnly { type_name, kind, length },
         } }
-    }
-}
-
-fn from_uplc_term_lazy(
-    _term: &Term<NamedDeBruijn>,
-    _term_ids: &HashSet<i32>,
-    _config: &LazyLoadConfig
-) -> SerializableTermLazy {
-    // TODO: Implement full term conversion
-    // For now, return a simple var as placeholder
-    SerializableTermLazy::Var {
-        id: 0,
-        name: "TODO".to_string(),
     }
 }
 

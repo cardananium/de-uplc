@@ -43,12 +43,12 @@ export namespace EventEmitter {
         vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_BREAKPOINT, termId);
     };
 
-    export const debuggerCaughtError = (error: string) => {
-        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_ERROR, error);
+    export const debuggerCaughtError = (error: string, termId: number) => {
+        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_ERROR, error, termId);
     };
 
-    export const debuggerCaughtFinished = (term: Term) => {
-        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_FINISHED, term);
+    export const debuggerCaughtFinished = (term: Term, termId: number) => {
+        vscode.commands.executeCommand(DebuggerControlEventNames.DEBUGGER_CAUGHT_FINISHED, term, termId);
     };
 
     export const showScriptContext = () => {
